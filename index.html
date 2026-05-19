@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BBB 资源投放分析报告</title>
+<style>
+/* ═══════════════════════════════════════════════════
+   Apple-Inspired Design System
+   SF Pro · Frosted Glass · Soft Shadows · Large Radius
+═══════════════════════════════════════════════════ */
+:root {
+  /* Surface */
+  --bg:        #f5f5f7;
+  --surface:   rgba(255,255,255,0.88);
+  --s2:        rgba(250,250,252,0.92);
+
+  /* Brand */
+  --blue:      #0071e3;
+  --blue-lt:   #e8f0fb;
+  --blue-dk:   #004eac;
+
+  /* Semantic */
+  --green:     #34c759;
+  --green-lt:  #f0fff4;
+  --green-dk:  #1a7a3a;
+  --orange:    #ff9f0a;
+  --orange-lt: #fff8e7;
+  --orange-dk: #b06000;
+  --red:       #ff3b30;
+  --red-lt:    #fff0ef;
+  --red-dk:    #c0271e;
+  --purple:    #bf5af2;
+  --purple-lt: #f5eaff;
+  --purple-dk: #7b2aad;
+
+  /* Text */
+  --t1: #1d1d1f;
+  --t2: #6e6e73;
+  --t3: #aeaeb2;
+
+  /* Border */
+  --bd:  rgba(0,0,0,0.08);
+  --bd2: rgba(0,0,0,0.04);
+
+  /* Shadow */
+  --sh1: 0 1px 3px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.06);
+  --sh2: 0 2px 8px rgba(0,0,0,.06), 0 12px 32px rgba(0,0,0,.08);
+  --sh3: 0 8px 24px rgba(0,0,0,.10), 0 24px 56px rgba(0,0,0,.12);
+
+  /* Radius */
+  --r1: 8px;  --r2: 12px;  --r3: 16px;  --r4: 20px;  --r5: 28px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family: -apple-system,"SF Pro Display","SF Pro Text",BlinkMacSystemFont,
+               "PingFang SC","Helvetica Neue",sans-serif;
+  background:var(--bg);
+  color:var(--t1);
+  font-size:14px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── Hero ── */
+.hero{
+  background:linear-gradient(145deg,#0a0a0a 0%,#1c1c1e 50%,#2c2c2e 100%);
+  padding:52px 52px 44px;color:#fff;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 80% at 80% 40%,rgba(0,113,227,.28) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 50% at 15% 80%,rgba(191,90,242,.14) 0%,transparent 55%);
+}
+.hi{position:relative;z-index:1;max-width:1160px;margin:0 auto}
+.hero-ey{font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:12px}
+.hero h1{font-size:36px;font-weight:700;letter-spacing:-.5px;color:#fff;margin-bottom:8px}
+.hero p{font-size:16px;color:rgba(255,255,255,.55);margin-bottom:28px}
+.tags{display:flex;gap:10px;flex-wrap:wrap}
+.tag-pill{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  border-radius:100px;padding:5px 14px;font-size:12px;color:rgba(255,255,255,.75);
+  backdrop-filter:blur(8px);letter-spacing:.3px;
+}
+
+/* ── Nav ── */
+.nav-outer{
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border-bottom:1px solid var(--bd);
+  position:sticky;top:0;z-index:200;
+}
+.nav-inner{
+  display:flex;max-width:1160px;margin:0 auto;padding:0 52px;
+  overflow-x:auto;scrollbar-width:none;
+}
+.nav-inner::-webkit-scrollbar{display:none}
+.ntab{
+  padding:14px 18px;border:none;background:none;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--t2);
+  border-bottom:2px solid transparent;
+  transition:color .15s,border-color .15s;white-space:nowrap;flex-shrink:0;
+}
+.ntab:hover{color:var(--blue)}
+.ntab.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+
+/* ── Main ── */
+.main{max-width:1160px;margin:0 auto;padding:32px 52px 72px}
+.pane{display:none}
+.pane.on{display:block}
+
+/* ── Section Header ── */
+.shtl{font-size:22px;font-weight:700;letter-spacing:-.3px;color:var(--t1);margin-bottom:4px}
+.shsb{font-size:14px;color:var(--t2);margin-bottom:24px}
+
+/* ── Card ── */
+.card{
+  background:var(--surface);
+  backdrop-filter:blur(20px);
+  border-radius:var(--r4);
+  box-shadow:var(--sh1);
+  border:1px solid var(--bd);
+  margin-bottom:20px;overflow:hidden;
+}
+.chd{
+  padding:18px 24px 16px;border-bottom:1px solid var(--bd2);
+  display:flex;align-items:center;gap:10px;
+}
+.chd h2{font-size:15px;font-weight:600;color:var(--t1);letter-spacing:-.15px;flex:1}
+.bdg{
+  font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;
+  background:var(--blue-lt);color:var(--blue);letter-spacing:.3px;
+}
+.bdg.ok{background:var(--green-lt);color:var(--green-dk)}
+.bdg.wn{background:var(--orange-lt);color:var(--orange-dk)}
+.bdg.er{background:var(--red-lt);color:var(--red-dk)}
+.cbd{padding:20px 24px}
+
+/* ── KPI ── */
+.kpi-g{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:12px;margin-bottom:20px;
+}
+.kpi{
+  background:#fff;border-radius:var(--r3);padding:20px 18px;
+  box-shadow:var(--sh1);border:1px solid var(--bd);
+  transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;
+}
+.kpi::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--blue);border-radius:3px 3px 0 0;
+}
+.kpi.g::before{background:var(--green)}
+.kpi.o::before{background:var(--orange)}
+.kpi.p::before{background:var(--purple)}
+.kpi.r::before{background:var(--red)}
+.kpi:hover{transform:translateY(-3px);box-shadow:var(--sh3)}
+.kl{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
+.kv{font-size:28px;font-weight:700;letter-spacing:-1px;color:var(--t1);line-height:1}
+.kpi.g .kv{color:var(--green-dk)}
+.kpi.o .kv{color:var(--orange-dk)}
+.kpi.p .kv{color:var(--purple-dk)}
+.kpi.r .kv{color:var(--red-dk)}
+.ks{font-size:11px;color:var(--t3);margin-top:6px}
+
+/* ── Alert ── */
+.alert{
+  border-radius:var(--r3);padding:14px 18px;
+  display:flex;gap:12px;align-items:flex-start;margin-bottom:20px;
+}
+.alert.w{background:var(--orange-lt);border:1px solid rgba(255,159,10,.2)}
+.alert.i{background:var(--blue-lt);border:1px solid rgba(0,113,227,.15)}
+.ai{font-size:18px;flex-shrink:0;margin-top:1px}
+.at{font-size:13px;line-height:1.7}
+.alert.w .at{color:var(--orange-dk)}
+.alert.i .at{color:#004494}
+.at strong{font-weight:700}
+
+/* ── Table ── */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{
+  background:#1c1c1e;color:rgba(255,255,255,.85);
+  padding:11px 14px;text-align:center;font-weight:600;
+  font-size:12px;letter-spacing:.3px;white-space:nowrap;
+}
+thead th:first-child{text-align:left}
+tbody tr{border-bottom:1px solid rgba(0,0,0,.04);transition:background .1s}
+tbody tr:hover{background:rgba(0,113,227,.04)}
+tbody td{padding:10px 14px;text-align:center;vertical-align:middle}
+tbody td:first-child,tbody td:nth-child(2){text-align:left}
+tr.rw{background:rgba(191,90,242,.04)}
+tr.rw:hover{background:rgba(191,90,242,.08)}
+tr.rs{background:rgba(52,199,89,.06);font-weight:600;border-top:1px solid rgba(52,199,89,.15)}
+tr.rs td{color:var(--green-dk)}
+tr.rt td{background:#1c1c1e;color:rgba(255,255,255,.9);font-weight:700;padding:11px 14px}
+tr.dh td{
+  background:rgba(0,0,0,.025);color:var(--t2);
+  font-weight:600;font-size:12px;padding:8px 14px;
+  border-top:1px solid rgba(0,0,0,.06);letter-spacing:.2px;
+}
+tr.popup-row{background:rgba(255,159,10,.06)}
+tr.popup-row:hover{background:rgba(255,159,10,.1)}
+tr.popup-row td{color:var(--orange-dk)}
+.cb{
+  display:inline-block;padding:3px 9px;border-radius:100px;
+  font-size:11px;font-weight:700;background:var(--blue-lt);color:var(--blue);
+}
+.cb.hi{background:var(--green-lt);color:var(--green-dk)}
+.cb.lo{background:var(--red-lt);color:var(--red-dk)}
+.wt{
+  display:inline-block;margin-left:8px;padding:2px 8px;
+  border-radius:100px;font-size:11px;background:rgba(0,0,0,.07);font-weight:500;
+}
+.pt td{background:var(--blue);color:#fff;font-weight:700;font-size:13px;padding:11px 14px}
+
+/* ── Progress Bar ── */
+.bw{display:flex;align-items:center;gap:8px}
+.bbar{height:6px;border-radius:3px;background:var(--blue);min-width:2px;display:inline-block}
+.bbar.g{background:var(--green)}
+
+/* ── Week Buttons ── */
+.wbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.wlb{font-size:12px;color:var(--t3)}
+.wtb{
+  padding:7px 16px;border:1.5px solid var(--bd);border-radius:100px;
+  background:#fff;font-size:13px;font-weight:500;cursor:pointer;color:var(--t2);
+  transition:all .15s;
+}
+.wtb:hover{border-color:var(--blue);color:var(--blue)}
+.wtb.s{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600;box-shadow:0 2px 8px rgba(0,113,227,.3)}
+.wtb.s2{background:linear-gradient(135deg,#34c759,#30d158);border-color:transparent;color:#fff;font-weight:600;box-shadow:0 2px 8px rgba(52,199,89,.3)}
+
+/* ── Mode Toggle ── */
+.mbs{display:flex;background:rgba(0,0,0,.05);border-radius:100px;padding:3px;gap:2px}
+.mb{
+  padding:6px 16px;border:none;border-radius:100px;
+  background:transparent;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--t2);transition:all .15s;
+}
+.mb.on{background:#fff;color:var(--t1);font-weight:600;box-shadow:var(--sh1)}
+
+/* ── Upload ── */
+.uz{
+  border:2px dashed var(--bd);border-radius:var(--r4);padding:40px 24px;
+  text-align:center;background:rgba(255,255,255,.5);transition:all .2s;cursor:pointer;
+}
+.uz:hover,.uz.drag{border-color:var(--blue);background:var(--blue-lt)}
+
+/* ── Week Manager Row ── */
+.wr{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--bd2);gap:10px}
+.wr:last-child{border-bottom:none}
+
+/* ── Overall Resource Card ── */
+.rg{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:24px}
+.rc{
+  background:#fff;border:1px solid var(--bd);border-radius:var(--r4);padding:20px;
+  box-shadow:var(--sh1);transition:transform .2s,box-shadow .2s;
+}
+.rc:hover{transform:translateY(-3px);box-shadow:var(--sh3)}
+.rc.pop{border-color:rgba(255,159,10,.3);background:var(--orange-lt)}
+.rct{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.rn{font-weight:700;font-size:15px;color:var(--t1)}
+.rc.pop .rn{color:var(--orange-dk)}
+.ri{font-size:11px;color:var(--t3);margin-top:3px;font-family:monospace}
+.tg{display:inline-block;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:600}
+.tg.wk{background:var(--purple-lt);color:var(--purple-dk)}
+.tg.wd{background:var(--blue-lt);color:var(--blue)}
+.dot{
+  width:6px;height:6px;border-radius:50%;background:var(--green);
+  display:inline-block;margin-right:4px;
+  animation:px 2s infinite;
+}
+@keyframes px{0%{opacity:1}50%{opacity:.3}100%{opacity:1}}
+.rst{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.rs2{text-align:center;background:var(--bg);border-radius:var(--r2);padding:10px}
+.v{font-size:18px;font-weight:700;color:var(--t1)}
+.l{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--t3);margin-top:2px}
+.rctr{
+  margin-top:12px;padding:12px 16px;border-radius:var(--r2);
+  background:linear-gradient(135deg,var(--blue),#34aadc);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.rc.pop .rctr{background:linear-gradient(135deg,var(--orange),#ffcc00)}
+.rcv{font-size:22px;font-weight:800;color:#fff;letter-spacing:-1px}
+.rcl{font-size:11px;color:rgba(255,255,255,.75);font-weight:600}
+
+/* ── Section Label (in renAl) ── */
+.sec{font-size:13px;font-weight:700;color:var(--t2);margin:0 0 12px;padding-left:4px;letter-spacing:.5px;text-transform:uppercase}
+.sec.o{color:var(--orange-dk);margin-top:24px}
+
+/* ── Compare ── */
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.cmp-grid{grid-template-columns:1fr}}
+.cmp-card{border-radius:var(--r3);overflow:hidden;box-shadow:var(--sh1);border:1px solid var(--bd)}
+.cmp-hd{padding:14px 20px;font-weight:700;font-size:14px;color:#fff}
+.cmp-hd.p1{background:linear-gradient(135deg,#1c1c1e,#3a3a3c)}
+.cmp-hd.p2{background:linear-gradient(135deg,#004eac,#0071e3)}
+
+/* ════════════════════════════════════════
+   AI Analysis — Apple Style, Two Panels
+════════════════════════════════════════ */
+.ai-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;flex-wrap:wrap;gap:12px;
+}
+.ai-run{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 28px;
+  background:linear-gradient(135deg,#0071e3,#34aadc);
+  color:#fff;border:none;border-radius:100px;
+  font-size:14px;font-weight:600;cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,113,227,.3);
+  transition:all .2s;
+}
+.ai-run:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,113,227,.4)}
+.ai-run:active{transform:translateY(0)}
+.ai-run-hint{font-size:12px;color:var(--t3)}
+
+.ai-panels{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+}
+@media(max-width:900px){.ai-panels{grid-template-columns:1fr}}
+
+.ai-panel{
+  background:#fff;border-radius:var(--r4);
+  border:1px solid var(--bd);overflow:hidden;
+  box-shadow:var(--sh1);
+}
+.ai-phd{
+  padding:16px 20px 14px;border-bottom:1px solid var(--bd2);
+  display:flex;align-items:center;gap:12px;
+}
+.ai-pico{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.ai-pico.gb{background:linear-gradient(135deg,#1c1c1e,#3a3a3c)}
+.ai-pico.lb{background:linear-gradient(135deg,#0071e3,#34aadc)}
+.ai-ptl{font-size:15px;font-weight:700;color:var(--t1)}
+.ai-psb{font-size:12px;color:var(--t3);margin-top:2px}
+.ai-pbd{padding:16px}
+
+/* Insight items */
+.ig{display:flex;flex-direction:column;gap:10px}
+.ic{
+  border-radius:var(--r2);padding:13px 14px;
+  border-left:3px solid transparent;
+  background:var(--bg);transition:transform .15s;
+}
+.ic:hover{transform:translateX(3px)}
+.ic.gd{border-left-color:var(--green);background:var(--green-lt)}
+.ic.wn{border-left-color:var(--orange);background:var(--orange-lt)}
+.ic.bd{border-left-color:var(--red);background:var(--red-lt)}
+.ic.if{border-left-color:var(--blue);background:var(--blue-lt)}
+.ic-icon{font-size:15px;float:left;margin-right:8px;margin-top:2px}
+.it{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:3px}
+.ib{font-size:12px;color:var(--t2);line-height:1.7}
+.ib b{color:var(--t1);font-weight:700}
+.ai-empty{text-align:center;padding:36px 16px;color:var(--t3);font-size:13px}
+.ai-empty-icon{font-size:32px;margin-bottom:8px}
+
+/* ── Footer ── */
+.footer{text-align:center;color:var(--t3);font-size:12px;padding:24px;letter-spacing:.3px}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:10px}
+
+.num{font-variant-numeric:tabular-nums}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .hero{padding:32px 24px}
+  .hero h1{font-size:26px}
+  .main{padding:20px 20px 48px}
+  .nav-inner{padding:0 20px}
+  .kpi-g{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ── KPI Sub-row (workday/weekend split) ── */
+.kr{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;border-top:1px solid rgba(0,0,0,.06);padding-top:10px}
+.kri{text-align:center;background:rgba(0,0,0,.02);border-radius:var(--r1);padding:8px 4px}
+.kri .v{font-weight:700;font-size:14px;color:var(--t1)}
+.kri .l{font-size:10px;color:var(--t3);margin-top:2px;font-weight:500}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hi">
+    <div class="hero-ey">BBB · 商企通广告资源</div>
+    <h1>资源投放分析报告</h1>
+    <p>周会数据汇报 · 广告效果洞察</p>
+    <div class="tags">
+      <span class="tag-pill">📅 数据周期：2026.4.30 — 2026.5.19</span>
+      <span class="tag-pill">📍 Banner资源 4个 + 弹窗 2个（弹窗跟进中）</span>
+      <span class="tag-pill">W1: 5.5~5.11 &nbsp;|&nbsp; W2: 5.12~5.18</span>
+      <span class="tag-pill">🕐 截止：2026.5.19</span>
+    </div>
+  </div>
+</div>
+
+<!-- Nav -->
+<div class="nav-outer">
+  <div class="nav-inner">
+    <button class="ntab on"  data-tab="ov">📊 整体概览</button>
+    <button class="ntab"     data-tab="wk">📅 分周明细</button>
+    <button class="ntab"     data-tab="cp">⚡ 周对比</button>
+    <button class="ntab"     data-tab="al">🗂 整体数据</button>
+    <button class="ntab"     data-tab="up">📤 上传数据</button>
+    <button class="ntab"     data-tab="ai">🤖 AI 分析</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══════════════ 整体概览 ══════════════ -->
+<div id="p-ov" class="pane on">
+  <div class="shtl">整体概览</div>
+  <div class="shsb">4.30 ~ 5.19 累计表现 · 含工作日 / 周末拆分</div>
+  <div class="alert w">
+    <div class="ai">⚠️</div>
+    <div class="at"><strong>弹窗资源数据异常：</strong>资源 3625（BBB工作日到外卖首页弹窗）、3626（BBB周末外卖首页弹窗）自4.30投放以来，累计曝光数据远低于预期，疑似统计口径或埋点问题，目前正在<strong>跟进排查中</strong>，数据仅供参考，不纳入主要汇报指标。</div>
+  </div>
+  <div id="ov-kpi"></div>
+  <div class="card">
+    <div class="chd"><h2>各资源位周次曝光UV对比</h2><span class="bdg">W1 vs W2</span></div>
+    <div class="cbd"><div style="overflow-x:auto"><canvas id="ch-bar" height="240"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="chd"><h2>资源位 CTR 排名</h2><span class="bdg">点击UV / 曝光UV</span></div>
+    <div class="cbd" id="ov-ctr"></div>
+  </div>
+
+  <div class="card">
+    <div class="chd"><h2>曝光UV 日趋势</h2><span class="bdg">按日期排列</span></div>
+    <div class="cbd"><canvas id="ch-trend" height="220"></canvas></div>
+  </div>
+
+</div>
+
+<!-- ══════════════ 分周明细 ══════════════ -->
+<div id="p-wk" class="pane">
+  <div class="shtl">分周明细</div>
+  <div class="shsb">选择周次查看每日各资源位数据</div>
+  <div class="wbs" id="wk-btns"><span class="wlb">选择周次 →</span></div>
+  <div id="wk-content"><div style="text-align:center;padding:48px;color:var(--t2)">请选择周次</div></div>
+</div>
+
+<!-- ══════════════ 周对比 ══════════════ -->
+<div id="p-cp" class="pane">
+  <div class="shtl">周次对比</div>
+  <div class="shsb">点击任意两个周次进行横向对比</div>
+  <div class="wbs" id="cp-btns"><span class="wlb">选择两个周次 →</span></div>
+  <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap">
+    <div class="mbs">
+      <button class="mb on" id="mb-tbl" onclick="setMode('tbl')">📋 表格</button>
+      <button class="mb"    id="mb-cht" onclick="setMode('cht')">📊 图表</button>
+    </div>
+  </div>
+  <div id="cp-content"><div style="text-align:center;padding:40px;color:var(--t2)">请选择2个周次进行对比</div></div>
+  <div class="card" id="cp-chart-card" style="display:none;margin-top:20px"><div class="chd"><h2>曝光UV趋势</h2></div><div class="cbd"><canvas id="ch-cmp" height="220"></canvas></div></div>
+</div>
+
+<!-- ══════════════ 整体数据 ══════════════ -->
+<div id="p-al" class="pane">
+  <div class="shtl">4.30 起整体数据</div>
+  <div class="shsb">截止 5.19 各资源位累计表现</div>
+  <div class="alert i">
+    <div class="ai">📌</div>
+    <div class="at">以下为 <strong>4.30 ~ 5.19 累计整体数据</strong>（来源：5.19整体资源数据.xlsx），弹窗数据疑似异常，仅供参考。</div>
+  </div>
+  <div id="al-content"></div>
+</div>
+
+<!-- ══════════════ 上传数据 ══════════════ -->
+<div id="p-up" class="pane">
+  <div class="shtl">上传数据</div>
+  <div class="shsb">上传 Excel 文件，数据将自动按自然周分配</div>
+  <div class="card">
+    <div class="chd"><h2>上传新周数据</h2><span class="bdg">支持 .xlsx</span></div>
+    <div class="cbd">
+      <div class="alert i" style="margin-bottom:16px">
+        <div class="ai">💡</div>
+        <div class="at"><strong>格式要求：</strong>Excel 文件需包含列 <strong>日期、资源id、资源名、曝光PV、曝光UV、点击PV、点击UV</strong>。系统自动按自然周分组，为每组数据分配到新周次（W3、W4...）或合并到已有周次。</div>
+      </div>
+      <div class="uz" id="uz" onclick="document.getElementById('fi').click()"
+           ondragover="dov(event)" ondragleave="dlv(event)" ondrop="ddp(event)">
+        <input type="file" id="fi" accept=".xlsx,.xls" style="display:none" onchange="fsel(event)">
+        <div style="font-size:36px;margin-bottom:10px">📁</div>
+        <div style="font-size:14px;color:var(--t2);margin-bottom:6px">点击选择文件，或拖拽 Excel 文件到此处</div>
+        <div style="font-size:12px;color:var(--t3)">支持 .xlsx / .xls</div>
+      </div>
+      <div id="up-result"></div>
+    </div>
+  </div>
+  <div class="card" id="wm-card" style="display:none">
+    <div class="chd"><h2>周次管理</h2><span class="bdg">当前数据</span></div>
+    <div class="cbd" id="wm-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════ AI 分析 ══════════════ -->
+<div id="p-ai" class="pane">
+  <div class="shtl">AI 智能分析</div>
+  <div class="shsb">基于已有数据自动生成洞察报告</div>
+
+  <div class="ai-hdr">
+    <button class="ai-run" onclick="runAI()"><span>✨</span> 立即分析</button>
+    <span class="ai-run-hint">每次点击将重新分析最新数据</span>
+  </div>
+
+  <div class="ai-panels">
+    <!-- Panel A: 整体累计 -->
+    <div class="ai-panel">
+      <div class="ai-phd">
+        <div class="ai-pico gb">🌐</div>
+        <div>
+          <div class="ai-ptl">整体累计分析</div>
+          <div class="ai-psb">4.30 起 · 所有周次汇总视角</div>
+        </div>
+      </div>
+      <div class="ai-pbd">
+        <div id="ai-global" class="ig">
+          <div class="ai-empty"><div class="ai-empty-icon">🔍</div>点击「立即分析」生成洞察</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel B: 最新一周 -->
+    <div class="ai-panel">
+      <div class="ai-phd">
+        <div class="ai-pico lb">📅</div>
+        <div>
+          <div class="ai-ptl">最新一周分析</div>
+          <div class="ai-psb" id="ai-latest-sub">最近数据周次 · 聚焦最新表现</div>
+        </div>
+      </div>
+      <div class="ai-pbd">
+        <div id="ai-latest" class="ig">
+          <div class="ai-empty"><div class="ai-empty-icon">📊</div>点击「立即分析」生成洞察</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+<div class="footer">BBB 资源投放分析报告 · 数据截止 2026.5.19 · 仅供内部使用</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+const INIT={"weeks": {"W1": {"label": "W1（5.5~5.11）", "days": [{"date": "20260505", "is_weekend": false, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 75545, "euv": 21264, "cpv": 693, "cuv": 626, "ctr": 0.0294, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 50622, "euv": 9380, "cpv": 457, "cuv": 360, "ctr": 0.0384, "is_popup": false}], "total": {"epv": 126167, "euv": 30644, "cpv": 1150, "cuv": 986, "ctr": 0.0322}}, {"date": "20260506", "is_weekend": false, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 73342, "euv": 22199, "cpv": 984, "cuv": 856, "ctr": 0.0386, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 32453, "euv": 6951, "cpv": 374, "cuv": 304, "ctr": 0.0437, "is_popup": false}], "total": {"epv": 105795, "euv": 29150, "cpv": 1358, "cuv": 1160, "ctr": 0.0398}}, {"date": "20260507", "is_weekend": false, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 59111, "euv": 17565, "cpv": 689, "cuv": 607, "ctr": 0.0346, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 30932, "euv": 6616, "cpv": 368, "cuv": 311, "ctr": 0.047, "is_popup": false}], "total": {"epv": 90043, "euv": 24181, "cpv": 1057, "cuv": 918, "ctr": 0.038}}, {"date": "20260508", "is_weekend": false, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 29854, "euv": 8550, "cpv": 415, "cuv": 292, "ctr": 0.0342, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 34518, "euv": 7223, "cpv": 458, "cuv": 323, "ctr": 0.0447, "is_popup": false}], "total": {"epv": 64372, "euv": 15773, "cpv": 873, "cuv": 615, "ctr": 0.039}}, {"date": "20260509", "is_weekend": true, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 33091, "euv": 9438, "cpv": 215, "cuv": 158, "ctr": 0.0167, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 45063, "euv": 9006, "cpv": 163, "cuv": 127, "ctr": 0.0141, "is_popup": false}, {"rid": 3617, "name": "BBB周末外卖首页", "epv": 70912, "euv": 20455, "cpv": 596, "cuv": 523, "ctr": 0.0256, "is_popup": false}, {"rid": 3618, "name": "BBB周末到店首页", "epv": 45067, "euv": 9006, "cpv": 226, "cuv": 168, "ctr": 0.0187, "is_popup": false}], "total": {"epv": 194133, "euv": 47905, "cpv": 1200, "cuv": 976, "ctr": 0.0204}}, {"date": "20260510", "is_weekend": true, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 37334, "euv": 10221, "cpv": 136, "cuv": 113, "ctr": 0.0111, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 59537, "euv": 10841, "cpv": 153, "cuv": 140, "ctr": 0.0129, "is_popup": false}, {"rid": 3617, "name": "BBB周末外卖首页", "epv": 74812, "euv": 21070, "cpv": 628, "cuv": 537, "ctr": 0.0255, "is_popup": false}, {"rid": 3618, "name": "BBB周末到店首页", "epv": 59544, "euv": 10842, "cpv": 280, "cuv": 213, "ctr": 0.0196, "is_popup": false}], "total": {"epv": 231227, "euv": 52974, "cpv": 1197, "cuv": 1003, "ctr": 0.0189}}, {"date": "20260511", "is_weekend": false, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 26616, "euv": 8045, "cpv": 635, "cuv": 347, "ctr": 0.0431, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 26766, "euv": 5935, "cpv": 304, "cuv": 224, "ctr": 0.0377, "is_popup": false}, {"rid": 3617, "name": "BBB周末外卖首页", "epv": 61, "euv": 10, "cpv": 0, "cuv": 0, "ctr": 0.0, "is_popup": false}, {"rid": 3618, "name": "BBB周末到店首页", "epv": 1, "euv": 1, "cpv": 0, "cuv": 0, "ctr": 0.0, "is_popup": false}], "total": {"epv": 53444, "euv": 13991, "cpv": 939, "cuv": 571, "ctr": 0.0408}}]}, "W2": {"label": "W2（5.12~5.18）", "days": [{"date": "20260512", "is_weekend": false, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 28028, "euv": 8286, "cpv": 438, "cuv": 328, "ctr": 0.0396, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 28740, "euv": 6449, "cpv": 327, "cuv": 239, "ctr": 0.0371, "is_popup": false}, {"rid": 3617, "name": "BBB周末外卖首页", "epv": 1, "euv": 1, "cpv": 0, "cuv": 0, "ctr": 0.0, "is_popup": false}], "total": {"epv": 56769, "euv": 14736, "cpv": 765, "cuv": 567, "ctr": 0.0385}}, {"date": "20260513", "is_weekend": false, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 28155, "euv": 8349, "cpv": 278, "cuv": 262, "ctr": 0.0314, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 30206, "euv": 6644, "cpv": 224, "cuv": 205, "ctr": 0.0309, "is_popup": false}], "total": {"epv": 58361, "euv": 14993, "cpv": 502, "cuv": 467, "ctr": 0.0311}}, {"date": "20260514", "is_weekend": false, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 29055, "euv": 8586, "cpv": 336, "cuv": 283, "ctr": 0.033, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 31734, "euv": 6749, "cpv": 266, "cuv": 226, "ctr": 0.0335, "is_popup": false}], "total": {"epv": 60789, "euv": 15335, "cpv": 602, "cuv": 509, "ctr": 0.0332}}, {"date": "20260515", "is_weekend": false, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 31402, "euv": 9059, "cpv": 308, "cuv": 289, "ctr": 0.0319, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 39454, "euv": 8350, "cpv": 290, "cuv": 277, "ctr": 0.0332, "is_popup": false}], "total": {"epv": 70856, "euv": 17409, "cpv": 598, "cuv": 566, "ctr": 0.0325}}, {"date": "20260516", "is_weekend": true, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 34034, "euv": 9553, "cpv": 96, "cuv": 87, "ctr": 0.0091, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 59325, "euv": 10939, "cpv": 121, "cuv": 113, "ctr": 0.0103, "is_popup": false}, {"rid": 3617, "name": "BBB周末外卖首页", "epv": 70166, "euv": 20143, "cpv": 566, "cuv": 490, "ctr": 0.0243, "is_popup": false}, {"rid": 3618, "name": "BBB周末到店首页", "epv": 59329, "euv": 10939, "cpv": 241, "cuv": 200, "ctr": 0.0183, "is_popup": false}], "total": {"epv": 222854, "euv": 51574, "cpv": 1024, "cuv": 890, "ctr": 0.0173}}, {"date": "20260517", "is_weekend": true, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 33818, "euv": 9318, "cpv": 81, "cuv": 77, "ctr": 0.0083, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 47396, "euv": 8953, "cpv": 68, "cuv": 60, "ctr": 0.0067, "is_popup": false}, {"rid": 3617, "name": "BBB周末外卖首页", "epv": 68486, "euv": 19403, "cpv": 481, "cuv": 415, "ctr": 0.0214, "is_popup": false}, {"rid": 3618, "name": "BBB周末到店首页", "epv": 47393, "euv": 8953, "cpv": 145, "cuv": 136, "ctr": 0.0152, "is_popup": false}], "total": {"epv": 197093, "euv": 46627, "cpv": 775, "cuv": 688, "ctr": 0.0148}}, {"date": "20260518", "is_weekend": false, "rows": [{"rid": 3614, "name": "BBB-工作日外卖首页", "epv": 27322, "euv": 8133, "cpv": 288, "cuv": 272, "ctr": 0.0334, "is_popup": false}, {"rid": 3616, "name": "BBB工作日到店首页", "epv": 26989, "euv": 5908, "cpv": 173, "cuv": 167, "ctr": 0.0283, "is_popup": false}, {"rid": 3617, "name": "BBB周末外卖首页", "epv": 17, "euv": 13, "cpv": 0, "cuv": 0, "ctr": 0.0, "is_popup": false}, {"rid": 3618, "name": "BBB周末到店首页", "epv": 1, "euv": 1, "cpv": 0, "cuv": 0, "ctr": 0.0, "is_popup": false}], "total": {"epv": 54329, "euv": 14055, "cpv": 461, "cuv": 439, "ctr": 0.0312}}]}}, "overall": [{"rid": 3614, "name": "BBB-工作日外卖首页", "platform": "商企通H5", "page": "外卖首页", "slot": "头部banner", "status": "投放中", "start": "2026-04-30 16:50:00", "end": "2026-12-31 15:39:00", "epv": 1849216, "euv": 380962, "cpv": 15911, "cuv": 11882, "ctr": 0.031, "is_popup": false, "is_weekend": false}, {"rid": 3616, "name": "BBB工作日到店首页", "platform": "商企通H5", "page": "到店首页", "slot": "头部banner", "status": "投放中", "start": "2026-04-30 16:52:00", "end": "2026-12-31 16:51:00", "epv": 1542511, "euv": 207443, "cpv": 9779, "cuv": 7066, "ctr": 0.034, "is_popup": false, "is_weekend": false}, {"rid": 3617, "name": "BBB周末外卖首页", "platform": "商企通H5", "page": "外卖首页", "slot": "头部banner", "status": "投放中", "start": "2026-04-30 16:54:00", "end": "2026-12-31 16:53:00", "epv": 805882, "euv": 185713, "cpv": 5488, "cuv": 4347, "ctr": 0.023, "is_popup": false, "is_weekend": true}, {"rid": 3618, "name": "BBB周末到店首页", "platform": "商企通H5", "page": "到店首页", "slot": "头部banner", "status": "投放中", "start": "2026-04-30 16:55:00", "end": "2026-12-31 16:54:00", "epv": 642599, "euv": 104543, "cpv": 2680, "cuv": 2072, "ctr": 0.02, "is_popup": false, "is_weekend": true}, {"rid": 3625, "name": "BBB工作日到外卖首页弹窗", "platform": "-", "page": "-", "slot": "-", "status": "投放中", "start": "2026-04-30 17:34:00", "end": "2026-12-31 17:33:00", "epv": 69, "euv": 69, "cpv": 9, "cuv": 4, "ctr": 0.057999999999999996, "is_popup": true, "is_weekend": false}, {"rid": 3626, "name": "BBB周末外卖首页弹窗", "platform": "-", "page": "-", "slot": "-", "status": "投放中", "start": "2026-04-30 17:35:00", "end": "2026-12-31 17:34:00", "epv": 5, "euv": 5, "cpv": 0, "cuv": 0, "ctr": 0, "is_popup": true, "is_weekend": true}]};
+const POPUP=new Set([3625,3626]);
+const NAMES={3614:'BBB-工作日外卖首页',3616:'BBB工作日到店首页',3617:'BBB周末外卖首页',3618:'BBB周末到店首页',3625:'BBB工作日到外卖首页弹窗',3626:'BBB周末外卖首页弹窗'};
+const ORD=[3614,3616,3617,3618,3625,3626];
+const WC=['#2563a8','#16a34a','#7c3aed','#d97706','#db2777','#0891b2'];
+let WEEKS={},curWk=null,cpSel=[],cpMode='tbl',CHS={};
+const $=id=>document.getElementById(id);
+const fN=n=>n==null?'-':Number(n).toLocaleString('zh-CN');
+const fC=v=>(!v&&v!==0)?'-':(v*100).toFixed(2)+'%';
+const cc=v=>!v?'':v>=0.03?'hi':v<0.015?'lo':'';
+const fD=d=>{const s=String(d);return s.slice(0,4)+'.'+s.slice(4,6)+'.'+s.slice(6,8)};
+const iW=d=>{const dt=new Date(String(d).replace(/(\d{4})(\d{2})(\d{2})/,'$1-$2-$3'));return dt.getDay()===0||dt.getDay()===6};
+const dch=id=>{if(CHS[id]){CHS[id].destroy();delete CHS[id]}};
+
+// Tab
+document.querySelectorAll('.ntab').forEach(b=>b.addEventListener('click',()=>{
+  const t=b.dataset.tab;
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('on'));
+  $('p-'+t).classList.add('on');b.classList.add('on');
+  if(t==='ai')runAI();
+}));
+
+function init(){WEEKS=JSON.parse(JSON.stringify(INIT.weeks))}
+
+function sumWk(wk,sp=true){let e=0,u=0,p=0,c=0;wk.days.forEach(d=>d.rows.forEach(r=>{if(sp&&POPUP.has(r.rid))return;e+=r.epv;u+=r.euv;p+=r.cpv;c+=r.cuv;}));return{epv:e,euv:u,cpv:p,cuv:c,ctr:u>0?c/u:0}}
+function sumR(wk,sp=true){const m={};wk.days.forEach(d=>d.rows.forEach(r=>{if(sp&&POPUP.has(r.rid))return;if(!m[r.rid])m[r.rid]={rid:r.rid,name:r.name,epv:0,euv:0,cpv:0,cuv:0};m[r.rid].epv+=r.epv;m[r.rid].euv+=r.euv;m[r.rid].cpv+=r.cpv;m[r.rid].cuv+=r.cuv;}));return Object.values(m).map(r=>({...r,ctr:r.euv>0?r.cuv/r.euv:0})).sort((a,b)=>ORD.indexOf(a.rid)-ORD.indexOf(b.rid))}
+function dTot(wk,sp=true){return wk.days.map(d=>{let e=0,u=0,p=0,c=0;d.rows.forEach(r=>{if(sp&&POPUP.has(r.rid))return;e+=r.epv;u+=r.euv;p+=r.cpv;c+=r.cuv;});return{date:d.date,iw:d.is_weekend,epv:e,euv:u,cpv:p,cuv:c,ctr:u>0?c/u:0}})}
+
+// ── Overview ──
+function renOv(){
+  const bs=INIT.overall.filter(r=>!r.is_popup);
+  const wd=bs.filter(r=>!r.is_weekend),we=bs.filter(r=>r.is_weekend);
+  const tot=r=>{let e=0,u=0,p=0,c=0;r.forEach(x=>{e+=x.epv;u+=x.euv;p+=x.cpv;c+=x.cuv;});return{epv:e,euv:u,cpv:p,cuv:c,ctr:u>0?c/u:0}};
+  const T=tot(bs),W=tot(wd),E=tot(we);
+  $('ov-kpi').innerHTML=`<div class="kpi-g">
+    <div class="kpi"><div class="kl">📺 总曝光 PV（4.30~5.19 累计）</div><div class="kv num">${fN(T.epv)}</div><div class="kr"><div class="kri"><div class="v">${fN(W.epv)}</div><div class="l">💼 工作日</div></div><div class="kri"><div class="v">${fN(E.epv)}</div><div class="l">🌙 周末</div></div></div></div>
+    <div class="kpi"><div class="kl">👁 总曝光 UV（4.30~5.19 累计）</div><div class="kv num">${fN(T.euv)}</div><div class="kr"><div class="kri"><div class="v">${fN(W.euv)}</div><div class="l">💼 工作日</div></div><div class="kri"><div class="v">${fN(E.euv)}</div><div class="l">🌙 周末</div></div></div></div>
+    <div class="kpi g"><div class="kl">🖱 总点击 UV（4.30~5.19 累计）</div><div class="kv num">${fN(T.cuv)}</div><div class="kr"><div class="kri"><div class="v">${fN(W.cuv)}</div><div class="l">💼 工作日</div></div><div class="kri"><div class="v">${fN(E.cuv)}</div><div class="l">🌙 周末</div></div></div></div>
+    <div class="kpi p"><div class="kl">📊 综合 CTR（4.30~5.19）</div><div class="kv">${fC(T.ctr)}</div><div class="kr"><div class="kri"><div class="v">${fC(W.ctr)}</div><div class="l">💼 工作日</div></div><div class="kri"><div class="v">${fC(E.ctr)}</div><div class="l">🌙 周末</div></div></div></div>
+  </div>`;
+
+  dch('bar');
+  const wks=Object.keys(WEEKS),rids=[3614,3616,3617,3618];
+  const ds=wks.map((k,i)=>{const rm={};sumR(WEEKS[k]).forEach(r=>rm[r.rid]=r);return{label:WEEKS[k].label,data:rids.map(r=>rm[r]?rm[r].euv:0),backgroundColor:WC[i]+'bb',borderColor:WC[i],borderWidth:1.5,borderRadius:5}});
+  CHS['bar']=new Chart($('ch-bar').getContext('2d'),{type:'bar',data:{labels:rids.map(r=>NAMES[r].replace('BBB-','').replace('BBB','')),datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:12},padding:12}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toLocaleString()}`}}},scales:{y:{ticks:{callback:v=>v>=10000?(v/10000).toFixed(1)+'万':v},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});
+
+  dch('trend');
+  const ad=[],seen=new Set();
+  Object.values(WEEKS).forEach(wk=>dTot(wk).forEach(d=>{if(!seen.has(d.date)){seen.add(d.date);ad.push(d)}}));
+  ad.sort((a,b)=>a.date.localeCompare(b.date));
+  CHS['trend']=new Chart($('ch-trend').getContext('2d'),{type:'line',data:{labels:ad.map(d=>fD(d.date)),datasets:[
+    {label:'曝光UV',data:ad.map(d=>d.euv),borderColor:'#2563a8',backgroundColor:'rgba(37,99,168,.07)',fill:true,tension:.35,pointRadius:4,pointHoverRadius:6,borderWidth:2.5,pointBackgroundColor:ad.map(d=>d.iw?'#7c3aed':'#2563a8')},
+    {label:'点击UV',data:ad.map(d=>d.cuv),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.05)',fill:true,tension:.35,pointRadius:3,borderWidth:2,borderDash:[5,3]},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:12},padding:12}},tooltip:{callbacks:{afterTitle:ii=>{const d=ad[ii[0].dataIndex];return d.iw?'🌙 周末':'💼 工作日'},label:c=>` ${c.dataset.label}: ${c.parsed.y.toLocaleString()}`}}},scales:{y:{ticks:{callback:v=>v>=10000?(v/10000).toFixed(1)+'万':v},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});
+
+  const mg={};Object.values(WEEKS).forEach(wk=>sumR(wk).forEach(r=>{if(!mg[r.rid])mg[r.rid]={...r,epv:0,euv:0,cpv:0,cuv:0};mg[r.rid].epv+=r.epv;mg[r.rid].euv+=r.euv;mg[r.rid].cpv+=r.cpv;mg[r.rid].cuv+=r.cuv;}));
+  const rnk=Object.values(mg).map(r=>({...r,ctr:r.euv>0?r.cuv/r.euv:0})).sort((a,b)=>b.ctr-a.ctr);
+  const mx=Math.max(...rnk.map(r=>r.euv));
+  $('ov-ctr').innerHTML=`<div class="tw"><table><thead><tr><th>排名</th><th>ID</th><th>资源名称</th><th>曝光UV</th><th>点击UV</th><th>CTR</th></tr></thead><tbody>${rnk.map((r,i)=>`<tr><td style="font-weight:700;color:#94a3b8">#${i+1}</td><td style="color:#94a3b8;font-size:11px">${r.rid}</td><td style="font-weight:600">${r.name}</td><td><div class="bw"><div class="bbar${r.rid===3614||r.rid===3616?' g':''}" style="width:${Math.round(r.euv/mx*140)}px"></div><span class="num" style="font-size:12px">${fN(r.euv)}</span></div></td><td class="num">${fN(r.cuv)}</td><td><span class="cb ${cc(r.ctr)}">${fC(r.ctr)}</span></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+// ── Weekly ──
+function renWkBtns(){$('wk-btns').innerHTML=Object.keys(WEEKS).map(k=>`<button class="wtb${k===curWk?' s':''}" onclick="selWk('${k}')">${WEEKS[k].label}</button>`).join('')}
+function selWk(k){curWk=k;renWkBtns();renWkTbl(k)}
+function renWkTbl(k){
+  const d=WEEKS[k];let h=`<div class="card"><div class="chd"><h2>${d.label} — 每日各资源位明细</h2><span class="bdg">${d.days.length}天</span></div><div class="cbd" style="padding:0"><div class="tw"><table><thead><tr><th>日期</th><th>类型</th><th>ID</th><th>资源名称</th><th>曝光PV</th><th>曝光UV</th><th>点击PV</th><th>点击UV</th><th>CTR</th></tr></thead><tbody>`;
+  let te=0,tu=0,tp=0,tc=0;
+  d.days.forEach(dy=>{
+    const wl=dy.is_weekend?'🌙 周末':'💼 工作日';const ws=dy.is_weekend?'color:#7c3aed;font-weight:600':'color:#2563a8';
+    h+=`<tr class="dh"><td colspan="9">📅 ${fD(dy.date)}<span class="wt">${wl}</span></td></tr>`;
+    dy.rows.forEach(r=>{h+=`<tr class="${dy.is_weekend?'rw':''}"><td style="color:#94a3b8;font-size:12px">${fD(dy.date)}</td><td style="${ws};font-size:12px">${wl}</td><td style="color:#94a3b8;font-size:11px">${r.rid}</td><td style="font-weight:500">${r.name}</td><td class="num">${fN(r.epv)}</td><td class="num">${fN(r.euv)}</td><td class="num">${fN(r.cpv)}</td><td class="num">${fN(r.cuv)}</td><td><span class="cb ${cc(r.ctr)}">${fC(r.ctr)}</span></td></tr>`});
+    h+=`<tr class="rs"><td colspan="4" style="padding-left:16px">📊 日合计（${dy.rows.length}个资源）</td><td class="num">${fN(dy.total.epv)}</td><td class="num">${fN(dy.total.euv)}</td><td class="num">${fN(dy.total.cpv)}</td><td class="num">${fN(dy.total.cuv)}</td><td><span class="cb ${cc(dy.total.ctr)}">${fC(dy.total.ctr)}</span></td></tr>`;
+    te+=dy.total.epv;tu+=dy.total.euv;tp+=dy.total.cpv;tc+=dy.total.cuv;
+  });
+  const t=tu>0?tc/tu:0;
+  h+=`<tr class="rt"><td colspan="4" style="padding-left:16px">🏁 周期总计</td><td class="num">${fN(te)}</td><td class="num">${fN(tu)}</td><td class="num">${fN(tp)}</td><td class="num">${fN(tc)}</td><td>${fC(t)}</td></tr>`;
+  h+=`</tbody></table></div></div></div>`;$('wk-content').innerHTML=h;
+}
+
+// ── Compare ──
+function renCpBtns(){$('cp-btns').innerHTML=Object.keys(WEEKS).map((k,i)=>{const idx=cpSel.indexOf(k);return`<button class="wtb${idx===0?' s':idx===1?' s2':''}" onclick="togCp('${k}')">${WEEKS[k].label}</button>`}).join('')}
+function togCp(k){const i=cpSel.indexOf(k);if(i>=0)cpSel.splice(i,1);else if(cpSel.length<2)cpSel.push(k);else cpSel=[cpSel[1],k];renCpBtns();if(cpSel.length===2)renCp();else $('cp-content').innerHTML='<div style="text-align:center;padding:40px;color:var(--gray)">请再选择 1 个周次</div>'}
+function setMode(m){cpMode=m;$('mb-tbl').classList.toggle('on',m==='tbl');$('mb-cht').classList.toggle('on',m==='cht');if(cpSel.length===2)renCp()}
+function renCp(){
+  const[ka,kb]=cpSel;const A=WEEKS[ka],B=WEEKS[kb];
+  const rA={},rB={};sumR(A).forEach(r=>rA[r.rid]=r);sumR(B).forEach(r=>rB[r.rid]=r);
+  const ids=[...new Set([...Object.keys(rA),...Object.keys(rB)].map(Number))].sort((a,b)=>ORD.indexOf(a)-ORD.indexOf(b));
+  if(cpMode==='tbl'){
+    let t1={epv:0,euv:0,cpv:0,cuv:0},t2={epv:0,euv:0,cpv:0,cuv:0};
+    let rows=ids.map((rid,i)=>{
+      const a=rA[rid]||{epv:0,euv:0,cpv:0,cuv:0,ctr:0},b=rB[rid]||{epv:0,euv:0,cpv:0,cuv:0,ctr:0};
+      t1.epv+=a.epv;t1.euv+=a.euv;t1.cpv+=a.cpv;t1.cuv+=a.cuv;t2.epv+=b.epv;t2.euv+=b.euv;t2.cpv+=b.cpv;t2.cuv+=b.cuv;
+      const d=b.ctr-a.ctr;const arr=d>0.001?'<span class="du">↑</span>':d<-0.001?'<span class="dd">↓</span>':'<span class="de">→</span>';
+      return`<tr style="${i%2?'background:#f8fafc':''}"><td style="color:#94a3b8;font-size:11px">${rid}</td><td style="font-weight:600">${NAMES[rid]||rid}</td><td class="num">${fN(a.epv)}</td><td class="num">${fN(a.euv)}</td><td class="num">${fN(a.cpv)}</td><td class="num">${fN(a.cuv)}</td><td><span class="cb ${cc(a.ctr)}">${fC(a.ctr)}</span></td><td class="num">${fN(b.epv)}</td><td class="num">${fN(b.euv)}</td><td class="num">${fN(b.cpv)}</td><td class="num">${fN(b.cuv)}</td><td><span class="cb ${cc(b.ctr)}">${fC(b.ctr)}</span> ${arr}</td></tr>`;
+    }).join('');
+    const tc1=t1.euv>0?t1.cuv/t1.euv:0,tc2=t2.euv>0?t2.cuv/t2.euv:0;
+    $('cp-content').innerHTML=`<div class="card"><div class="chd"><h2>${A.label} vs ${B.label}</h2></div><div class="cbd" style="padding:0"><div class="tw"><table>
+      <thead><tr><th rowspan="2">ID</th><th rowspan="2">资源名称</th><th colspan="5" style="background:#1a3a5c">${A.label}</th><th colspan="5" style="background:#064e3b">${B.label}</th></tr>
+      <tr><th style="background:#1e40af">曝光PV</th><th style="background:#1e40af">曝光UV</th><th style="background:#1e40af">点击PV</th><th style="background:#1e40af">点击UV</th><th style="background:#1e40af">CTR</th><th style="background:#065f46">曝光PV</th><th style="background:#065f46">曝光UV</th><th style="background:#065f46">点击PV</th><th style="background:#065f46">点击UV</th><th style="background:#065f46">CTR</th></tr></thead>
+      <tbody>${rows}<tr class="rs"><td colspan="2">📊 合计</td><td class="num">${fN(t1.epv)}</td><td class="num">${fN(t1.euv)}</td><td class="num">${fN(t1.cpv)}</td><td class="num">${fN(t1.cuv)}</td><td><span class="cb ${cc(tc1)}">${fC(tc1)}</span></td><td class="num">${fN(t2.epv)}</td><td class="num">${fN(t2.euv)}</td><td class="num">${fN(t2.cpv)}</td><td class="num">${fN(t2.cuv)}</td><td><span class="cb ${cc(tc2)}">${fC(tc2)}</span></td></tr></tbody>
+    </table></div></div></div>`;
+  } else {
+    $('cp-content').innerHTML=`<div class="card"><div class="chd"><h2>${A.label} vs ${B.label} 曝光UV对比</h2></div><div class="cbd"><canvas id="ch-cmp" height="260"></canvas></div></div>`;
+    dch('cmp');
+    const rids=[...new Set([...Object.keys(rA),...Object.keys(rB)].map(Number))].sort((a,b)=>ORD.indexOf(a)-ORD.indexOf(b));
+    CHS['cmp']=new Chart($('ch-cmp').getContext('2d'),{type:'bar',data:{labels:rids.map(r=>NAMES[r].replace('BBB-','').replace('BBB','')),datasets:[{label:A.label,data:rids.map(r=>rA[r]?rA[r].euv:0),backgroundColor:'rgba(37,99,168,.75)',borderColor:'#2563a8',borderWidth:1.5,borderRadius:5},{label:B.label,data:rids.map(r=>rB[r]?rB[r].euv:0),backgroundColor:'rgba(22,163,74,.7)',borderColor:'#16a34a',borderWidth:1.5,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toLocaleString()}`}}},scales:{y:{ticks:{callback:v=>v>=10000?(v/10000).toFixed(1)+'万':v},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});
+  }
+}
+
+// ── Overall ──
+function renAl(){
+  const bs=INIT.overall.filter(r=>!r.is_popup),ps=INIT.overall.filter(r=>r.is_popup);
+  const card=r=>`<div class="rc${r.is_popup?' pop':''}">
+    <div class="rct"><div><div class="rn">${r.name}</div><div class="ri">ID: ${r.rid} · ${r.platform!=='-'?r.platform:'弹窗'} · ${String(r.start).slice(0,10)} 起投</div></div>
+    <div style="text-align:right"><span class="tg ${r.is_weekend?'wk':'wd'}">${r.is_weekend?'周末资源':'工作日资源'}</span><br><span style="font-size:11px;color:#94a3b8;margin-top:3px;display:block"><span class="dot"></span>${r.status}</span></div></div>
+    <div class="rst"><div class="rs2"><div class="v num">${fN(r.epv)}</div><div class="l">曝光PV（累计）</div></div><div class="rs2"><div class="v num">${fN(r.euv)}</div><div class="l">曝光UV（累计）</div></div><div class="rs2"><div class="v num">${fN(r.cpv)}</div><div class="l">点击PV（累计）</div></div><div class="rs2"><div class="v num">${fN(r.cuv)}</div><div class="l">点击UV（累计）</div></div></div>
+    <div class="rctr"><div class="rcl">累计 CTR（4.30~5.19）</div><div class="rcv">${r.ctr?fC(r.ctr):(r.is_popup?'数据跟进中':'-')}</div></div>
+    ${r.is_popup?'<div style="margin-top:8px;font-size:12px;color:#b45309">⚠️ 弹窗数据异常，正在排查统计问题</div>':''}
+  </div>`;
+  $('al-content').innerHTML='<div class="sec">📌 Banner 资源（4个）</div><div class="rg">'+bs.map(card).join('')+'</div><div class="sec o">⚠️ 弹窗资源（2个，数据跟进中）</div><div class="rg">'+ps.map(card).join('')+'</div>';
+}
+
+// ── Upload ──
+function dov(e){e.preventDefault();$('uz').classList.add('drag')}
+function dlv(e){$('uz').classList.remove('drag')}
+function ddp(e){e.preventDefault();$('uz').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)pf(f)}
+function fsel(e){const f=e.target.files[0];if(f)pf(f)}
+
+function getIsoWk(di){
+  const s=String(di),d=new Date(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`);
+  const j4=new Date(d.getFullYear(),0,4);const sw=new Date(j4);sw.setDate(j4.getDate()-(j4.getDay()||7)+1);
+  return Math.ceil((d-sw)/(7*86400000))+1;
+}
+function nextWkKey(){const ns=Object.keys(WEEKS).filter(k=>/^W\d+$/.test(k)).map(k=>parseInt(k.slice(1)));return'W'+(Math.max(...ns,0)+1)}
+
+function pf(file){
+  $('up-result').innerHTML=`<div style="margin-top:10px;color:var(--blue)">⏳ 正在解析 ${file.name}...</div>`;
+  const rdr=new FileReader();
+  rdr.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws);
+      if(!rows.length){$('up-result').innerHTML='<div style="color:red">文件为空</div>';return}
+      const need=['日期','资源id','曝光PV','曝光UV','点击PV','点击UV'];
+      const miss=need.filter(c=>!Object.keys(rows[0]).includes(c));
+      if(miss.length){$('up-result').innerHTML=`<div style="color:red">缺少列：${miss.join('、')}</div>`;return}
+      const bw={};
+      rows.forEach(r=>{const di=Number(r['日期']),wn=getIsoWk(di),k=`iso${wn}`;if(!bw[k])bw[k]={wn,rows:[]};bw[k].rows.push(r)});
+      window._pbw=bw;
+      const wks=Object.keys(bw).sort((a,b)=>bw[a].wn-bw[b].wn);
+      let h=`<div style="margin-top:14px"><div style="font-size:13px;font-weight:600;color:var(--blue-dk);margin-bottom:8px">✅ ${file.name} — 检测到 ${wks.length} 个自然周数据：</div>`;
+      wks.forEach(wk=>{
+        const rs=bw[wk].rows,ds=rs.map(r=>Number(r['日期']));
+        const dr=`${fD(Math.min(...ds))} ~ ${fD(Math.max(...ds))}`;
+        const nk=nextWkKey();
+        h+=`<div class="wr"><span style="font-size:13px;font-weight:600;color:var(--dk)">第${bw[wk].wn}周 (${dr})：${rs.length}条</span><select id="asgn-${wk}" style="margin-left:auto;padding:4px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:600"><option value="${nk}">${nk}（新建）</option>${Object.keys(WEEKS).map(k=>`<option value="${k}">${WEEKS[k].label}（合并）</option>`).join('')}</select></div>`;
+      });
+      h+=`</div><button onclick="doImport()" style="margin-top:14px;padding:8px 22px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">✅ 确认导入</button>`;
+      $('up-result').innerHTML=h;
+    }catch(err){$('up-result').innerHTML=`<div style="color:red">解析失败：${err.message}</div>`}
+  };rdr.readAsArrayBuffer(file);
+}
+
+function doImport(){
+  const bw=window._pbw;if(!bw)return;
+  Object.keys(bw).forEach(wk=>{
+    const sel=$('asgn-'+wk);const tk=sel?sel.value:nextWkKey();
+    const rows=bw[wk].rows;
+    const bd={};
+    rows.forEach(r=>{const d=String(r['日期']);if(!bd[d])bd[d]={date:d,is_weekend:iW(Number(d)),rows:[]};const rid=Number(r['资源id']);bd[d].rows.push({rid,name:NAMES[rid]||(r['资源名']||String(rid)),epv:Number(r['曝光PV'])||0,euv:Number(r['曝光UV'])||0,cpv:Number(r['点击PV'])||0,cuv:Number(r['点击UV'])||0,ctr:Number(r['曝光UV'])>0?Number(r['点击UV'])/Number(r['曝光UV']):0,is_popup:[3625,3626].includes(rid)})});
+    const days=Object.keys(bd).sort().map(d=>{const dy=bd[d];const t={epv:0,euv:0,cpv:0,cuv:0};dy.rows.forEach(r=>{t.epv+=r.epv;t.euv+=r.euv;t.cpv+=r.cpv;t.cuv+=r.cuv});t.ctr=t.euv>0?t.cuv/t.euv:0;return{...dy,total:t}});
+    if(WEEKS[tk]){const ex=new Set(WEEKS[tk].days.map(d=>d.date));days.forEach(d=>{if(!ex.has(d.date))WEEKS[tk].days.push(d)});WEEKS[tk].days.sort((a,b)=>a.date.localeCompare(b.date))}
+    else{const ds=days.map(d=>d.date).sort();WEEKS[tk]={label:`${tk}（${fD(ds[0])}~${fD(ds[ds.length-1])}）`,days}}
+  });
+  $('up-result').innerHTML='<div style="color:var(--green);font-weight:600;margin-top:10px">✅ 导入成功！</div>';
+  renWkBtns();renCpBtns();renWkMg();renOv();
+  alert('导入成功！可切换到「分周明细」或「周对比」查看新数据。');
+}
+
+function renWkMg(){
+  $('wm-card').style.display='block';
+  $('wm-body').innerHTML=Object.keys(WEEKS).map(k=>{const s=sumWk(WEEKS[k]);return`<div class="wr"><div><span style="font-weight:700;color:var(--dk)">${WEEKS[k].label}</span><span style="margin-left:10px;font-size:12px;color:var(--gray)">${WEEKS[k].days.length}天 · 曝光UV ${fN(s.euv)} · CTR ${fC(s.ctr)}</span></div><button onclick="delWk('${k}')" style="margin-left:auto;padding:3px 10px;border:1.5px solid #fca5a5;background:#fef2f2;color:#dc2626;border-radius:6px;font-size:12px;cursor:pointer">删除</button></div>`}).join('');
+}
+function delWk(k){if(!confirm(`确定删除 ${WEEKS[k].label}？`))return;delete WEEKS[k];if(curWk===k)curWk=Object.keys(WEEKS)[0]||null;cpSel=cpSel.filter(s=>s!==k);renWkBtns();renCpBtns();renWkMg();renOv()}
+
+
+
+// ── AI Analysis (Dual Panel) ──
+function runAI(){
+  const wks=Object.keys(WEEKS);
+  const emptyG='<div class="ai-empty"><div class="ai-empty-icon">📭</div>暂无足够数据</div>';
+  const emptyL='<div class="ai-empty"><div class="ai-empty-icon">📭</div>暂无最新周数据</div>';
+
+  if(wks.length<1){
+    $('ai-global').innerHTML=emptyG;
+    $('ai-latest').innerHTML=emptyL;
+    return;
+  }
+
+  $('ai-global').innerHTML='<div class="ai-empty"><div class="ai-empty-icon">⏳</div>分析中…</div>';
+  $('ai-latest').innerHTML='<div class="ai-empty"><div class="ai-empty-icon">⏳</div>分析中…</div>';
+
+  setTimeout(()=>{
+    const sums=wks.map(k=>({k,label:WEEKS[k].label,...sumWk(WEEKS[k])}));
+    const lastKey=wks[wks.length-1];
+    const lastWk=WEEKS[lastKey];
+    $('ai-latest-sub').textContent=lastWk.label+' · 最新周次聚焦分析';
+
+    /* ════════════════════════════════════
+       PANEL A: 整体累计分析（所有周次）
+    ════════════════════════════════════ */
+    const gIns=[];
+
+    // A1. 整体汇总
+    const allEuv=sums.reduce((s,x)=>s+x.euv,0);
+    const allCuv=sums.reduce((s,x)=>s+x.cuv,0);
+    const allCtr=allEuv>0?allCuv/allEuv:0;
+    gIns.push({t:'if',i:'📊',h:'整体数据总览',
+      b:`${wks.length}个周次合计：总曝光UV <b>${fN(allEuv)}</b>，总点击UV <b>${fN(allCuv)}</b>，综合 CTR <b>${fC(allCtr)}</b>。`});
+
+    // A2. 周次环比趋势
+    for(let i=1;i<sums.length;i++){
+      const pv=sums[i-1],cv=sums[i];
+      const ec=(cv.euv-pv.euv)/Math.max(pv.euv,1);
+      const cc2=cv.ctr-pv.ctr;
+      if(Math.abs(ec)>0.03)
+        gIns.push({t:ec>0?'gd':'wn',i:ec>0?'📈':'📉',
+          h:`${cv.label} 曝光UV环比${ec>0?'增长':'下降'}`,
+          b:`相比 ${pv.label}，曝光UV <b>${ec>0?'+':''}${(ec*100).toFixed(1)}%</b>（${fN(pv.euv)} → ${fN(cv.euv)}）。${ec<-0.1?'降幅较大，建议排查节假日或资源调整影响。':'整体趋势良好。'}`});
+      if(Math.abs(cc2)>0.002)
+        gIns.push({t:cc2>0?'gd':'bd',i:cc2>0?'✅':'⚠️',
+          h:`${cv.label} CTR${cc2>0?'提升':'下滑'}`,
+          b:`CTR 由 <b>${fC(pv.ctr)}</b> → <b>${fC(cv.ctr)}</b>。${cc2>0?'点击效率提升，素材/定向发挥了正向作用。':'建议检查素材新鲜度或人群匹配度。'}`});
+    }
+
+    // A3. 整体各资源位表现排名
+    const mg={};
+    Object.values(WEEKS).forEach(wk=>sumR(wk).forEach(r=>{
+      if(!mg[r.rid])mg[r.rid]={...r,epv:0,euv:0,cpv:0,cuv:0};
+      mg[r.rid].epv+=r.epv;mg[r.rid].euv+=r.euv;mg[r.rid].cpv+=r.cpv;mg[r.rid].cuv+=r.cuv;
+    }));
+    const rnk=Object.values(mg).map(r=>({...r,ctr:r.euv>0?r.cuv/r.euv:0})).filter(r=>!POPUP.has(r.rid)).sort((a,b)=>b.ctr-a.ctr);
+    if(rnk.length>0){
+      const best=rnk[0],worst=rnk[rnk.length-1];
+      gIns.push({t:'gd',i:'🏅',h:`CTR 最高资源：${best.name}`,b:`累计 CTR <b>${fC(best.ctr)}</b>，曝光UV <b>${fN(best.euv)}</b>，是整体效率最高的资源位，素材策略可参考推广。`});
+      if(rnk.length>1)
+        gIns.push({t:'wn',i:'🔎',h:`CTR 最低资源：${worst.name}`,b:`累计 CTR <b>${fC(worst.ctr)}</b>，曝光UV <b>${fN(worst.euv)}</b>，建议优先进行素材迭代或定向优化。`});
+    }
+
+    // A4. 工作日 vs 周末（跨所有周）
+    const allDays=[];const seen=new Set();
+    Object.values(WEEKS).forEach(wk=>dTot(wk).forEach(d=>{if(!seen.has(d.date)){seen.add(d.date);allDays.push(d)}}));
+    const wdDays=allDays.filter(d=>!d.iw),weDays=allDays.filter(d=>d.iw);
+    if(wdDays.length&&weDays.length){
+      const avgEuvWd=wdDays.reduce((s,d)=>s+d.euv,0)/wdDays.length;
+      const avgEuvWe=weDays.reduce((s,d)=>s+d.euv,0)/weDays.length;
+      const diff=(avgEuvWe-avgEuvWd)/Math.max(avgEuvWd,1);
+      gIns.push({t:'if',i:'📆',h:'工作日 vs 周末日均曝光UV对比',
+        b:`工作日日均曝光UV <b>${fN(Math.round(avgEuvWd))}</b>，周末日均 <b>${fN(Math.round(avgEuvWe))}</b>。${diff>0.05?'周末流量高于工作日，休闲场景表现更佳。':diff<-0.05?'工作日流量高于周末，工作场景中用户转化意愿更强。':'工作日与周末流量接近，分布均衡。'}`});
+    }
+
+    // A5. 峰谷分析
+    allDays.sort((a,b)=>a.date.localeCompare(b.date));
+    if(allDays.length>0){
+      const mx=allDays.reduce((a,b)=>a.euv>b.euv?a:b);
+      const mn=allDays.reduce((a,b)=>a.euv<b.euv?a:b);
+      gIns.push({t:'if',i:'🏆',h:`历史流量峰值：${fD(mx.date)}`,b:`曝光UV <b>${fN(mx.euv)}</b>，CTR <b>${fC(mx.ctr)}</b>。${mx.iw?'周末流量峰值属正常波动。':'工作日出现流量高峰，建议结合业务动作分析原因。'}`});
+      gIns.push({t:'wn',i:'📉',h:`历史流量低谷：${fD(mn.date)}`,b:`曝光UV仅 <b>${fN(mn.euv)}</b>，CTR <b>${fC(mn.ctr)}</b>。${mn.iw?'周末某类资源自然低谷，属正常现象。':'建议关注是否有外部因素影响当日流量。'}`});
+    }
+
+    // A6. 综合结论
+    gIns.push({t:allCtr>=0.025?'gd':'wn',i:'📌',h:'整体投放综合结论',
+      b:`${wks.length}周合计总曝光UV <b>${fN(allEuv)}</b>，综合CTR <b>${fC(allCtr)}</b>。${allCtr>=0.025?'整体CTR处于健康区间（≥2.5%），建议持续关注周末资源优化空间。':'当前CTR略低于预期基准（2.5%），建议优先对CTR最低资源进行素材迭代。'}`});
+
+    /* ════════════════════════════════════
+       PANEL B: 最新一周分析
+    ════════════════════════════════════ */
+    const lIns=[];
+    const lSum=sums[sums.length-1];
+    const prevSum=sums.length>=2?sums[sums.length-2]:null;
+
+    // B1. 本周总览
+    lIns.push({t:'if',i:'📋',h:`${lSum.label} 本周总览`,
+      b:`曝光UV <b>${fN(lSum.euv)}</b>，点击UV <b>${fN(lSum.cuv)}</b>，CTR <b>${fC(lSum.ctr)}</b>，共 <b>${lastWk.days.length}</b> 天数据。`});
+
+    // B2. 环比对比
+    if(prevSum){
+      const ec=(lSum.euv-prevSum.euv)/Math.max(prevSum.euv,1);
+      const cc2=lSum.ctr-prevSum.ctr;
+      lIns.push({t:ec>=0?'gd':'wn',i:ec>=0?'📈':'📉',
+        h:`相比上周（${prevSum.label}）曝光UV${ec>=0?'增长':'下降'} ${Math.abs((ec*100).toFixed(1))}%`,
+        b:`${prevSum.label}：${fN(prevSum.euv)} → ${lSum.label}：${fN(lSum.euv)}。${ec>=0?'本周流量提升，运营节奏良好。':'本周流量下滑，建议排查节假日或资源调整影响。'}`});
+      lIns.push({t:cc2>=0?'gd':'bd',i:cc2>=0?'✅':'⚠️',
+        h:`本周 CTR 环比${cc2>=0?'提升':'下滑'}`,
+        b:`${prevSum.label} CTR <b>${fC(prevSum.ctr)}</b> → ${lSum.label} CTR <b>${fC(lSum.ctr)}</b>。${cc2>=0?'点击效率持续提升。':'建议检查本周素材新鲜度及受众匹配情况。'}`});
+    }
+
+    // B3. 本周各资源位表现
+    const lRes=sumR(lastWk).filter(r=>!POPUP.has(r.rid)).sort((a,b)=>b.ctr-a.ctr);
+    if(lRes.length>0){
+      const lb=lRes[0],lw=lRes[lRes.length-1];
+      lIns.push({t:'gd',i:'⭐',h:`本周最优资源：${lb.name}`,b:`CTR <b>${fC(lb.ctr)}</b>，曝光UV <b>${fN(lb.euv)}</b>。本周表现最佳，素材策略值得借鉴。`});
+      if(lRes.length>1)
+        lIns.push({t:lw.ctr<0.015?'wn':'if',i:'🔍',h:`本周待优化：${lw.name}`,b:`CTR <b>${fC(lw.ctr)}</b>，曝光UV <b>${fN(lw.euv)}</b>。${lw.ctr<0.015?'CTR偏低，建议优先排查该资源的素材与定向设置。':'本周相对最低，可关注后续表现。'}`});
+    }
+
+    // B4. 工作日 vs 周末（本周）
+    const lWd=lastWk.days.filter(d=>!d.is_weekend),lWe=lastWk.days.filter(d=>d.is_weekend);
+    if(lWd.length&&lWe.length){
+      const ct=ds=>{let u=0,c=0;ds.forEach(d=>d.rows.forEach(r=>{if(!POPUP.has(r.rid)){u+=r.euv;c+=r.cuv}}));return u>0?c/u:0};
+      const wdCtr=ct(lWd),weCtr=ct(lWe);
+      const dc=wdCtr-weCtr;
+      lIns.push({t:'if',i:'🗓',h:`本周工作日 vs 周末 CTR`,b:`工作日CTR <b>${fC(wdCtr)}</b>，周末CTR <b>${fC(weCtr)}</b>。${Math.abs(dc)>0.005?(dc>0?'工作日转化更强，工作场景下外卖/到店意愿更高。':'周末转化更强，休闲场景有优势。'):'工作日/周末表现接近，流量分布均匀。'}`});
+    } else if(lWd.length){
+      lIns.push({t:'if',i:'💼',h:'本周全为工作日',b:`共 ${lWd.length} 个工作日数据，无周末数据可对比。`});
+    } else if(lWe.length){
+      lIns.push({t:'if',i:'🌙',h:'本周含周末数据',b:`共 ${lWe.length} 个周末日数据，工作日数据较少。`});
+    }
+
+    // B5. 本周峰谷
+    const lDays=dTot(lastWk).sort((a,b)=>a.date.localeCompare(b.date));
+    if(lDays.length>1){
+      const lmx=lDays.reduce((a,b)=>a.euv>b.euv?a:b);
+      const lmn=lDays.reduce((a,b)=>a.euv<b.euv?a:b);
+      lIns.push({t:'gd',i:'🔝',h:`本周最高流量日：${fD(lmx.date)}`,b:`曝光UV <b>${fN(lmx.euv)}</b>，CTR <b>${fC(lmx.ctr)}</b>。${lmx.iw?'周末流量自然较高。':'工作日流量高峰，可结合当日活动分析。'}`});
+      if(lmn.date!==lmx.date)
+        lIns.push({t:'wn',i:'🔻',h:`本周最低流量日：${fD(lmn.date)}`,b:`曝光UV <b>${fN(lmn.euv)}</b>，CTR <b>${fC(lmn.ctr)}</b>。如异常偏低，建议排查当日数据完整性。`});
+    }
+
+    // B6. 本周结论
+    const weekStatus=lSum.ctr>=0.02?'gd':'wn';
+    lIns.push({t:weekStatus,i:'💡',h:`${lSum.label} 本周小结`,
+      b:`本周整体CTR <b>${fC(lSum.ctr)}</b>，${lSum.ctr>=0.02?'表现符合预期，持续保持当前运营节奏。':'建议下周重点优化CTR表现，可参考历史高峰周素材策略。'}`});
+
+    // ── Render ──
+    const mkIg=ins=>ins.map(x=>`<div class="ic ${x.t}"><div class="ic-icon">${x.i}</div><div class="it">${x.h}</div><div class="ib">${x.b}</div></div>`).join('');
+    $('ai-global').innerHTML='<div class="ig">'+mkIg(gIns)+'</div>';
+    $('ai-latest').innerHTML='<div class="ig">'+mkIg(lIns)+'</div>';
+  },300);
+}
+
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded',()=>{
+  init();
+  curWk=Object.keys(WEEKS)[0]||null;
+  cpSel=Object.keys(WEEKS).slice(0,2);
+  renOv();
+  renWkBtns();if(curWk)renWkTbl(curWk);
+  renCpBtns();if(cpSel.length===2)renCp();
+  renAl();
+  renWkMg();
+});
+</script>
+</body>
+</html>
