@@ -482,6 +482,131 @@ tr.popup-row:hover { background:rgba(255,159,10,.10) }
   background:var(--blue-lt); color:var(--blue-dk);
 }
 .note { font-size:12px; color:var(--t3); margin-top:12px; font-style:italic }
+
+/* ══════════════════════════════════════
+   KPI 工作日 / 周末 子行
+══════════════════════════════════════ */
+.kr {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px 12px;
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid var(--bd2);
+}
+.kri {
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.kri .v {
+  font-size:15px;
+  font-weight:700;
+  color:var(--t1);
+  font-variant-numeric:tabular-nums;
+}
+.kri .l {
+  font-size:11px;
+  color:var(--t3);
+  font-weight:500;
+}
+/* 工作日用蓝色，周末用紫色 */
+.kri:first-child .v { color:var(--blue-dk) }
+.kri:last-child  .v { color:var(--purple-dk) }
+
+/* ══════════════════════════════════════
+   周次选择按钮 (.wtb)
+   胶囊椭圆形，选中高亮
+══════════════════════════════════════ */
+.wbs {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:20px;
+  align-items:center;
+}
+.wlb {
+  font-size:13px;
+  color:var(--t3);
+  margin-right:4px;
+}
+.wtb {
+  padding:8px 20px;
+  border-radius:100px;         /* 完整椭圆胶囊 */
+  border:1.5px solid var(--bd);
+  background:rgba(255,255,255,0.65);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  font-size:13px;
+  font-weight:500;
+  color:var(--t2);
+  cursor:pointer;
+  transition:all .15s;
+  box-shadow:0 1px 4px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.8);
+  white-space:nowrap;
+}
+.wtb:hover {
+  background:rgba(255,255,255,0.85);
+  color:var(--t1);
+  border-color:rgba(0,0,0,.12);
+}
+/* 第一个选中（分周明细 / 对比W1）：蓝色 */
+.wtb.s {
+  background:var(--blue);
+  color:#fff;
+  border-color:var(--blue);
+  font-weight:600;
+  box-shadow:0 2px 8px rgba(0,113,227,.30), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.wtb.s:hover {
+  background:var(--blue-dk);
+  border-color:var(--blue-dk);
+}
+/* 第二个选中（对比W2）：绿色 */
+.wtb.s2 {
+  background:var(--green);
+  color:#fff;
+  border-color:var(--green);
+  font-weight:600;
+  box-shadow:0 2px 8px rgba(52,199,89,.28), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.wtb.s2:hover {
+  background:var(--green-dk);
+  border-color:var(--green-dk);
+}
+
+/* ══════════════════════════════════════
+   表格 / 图表 切换按钮 (.mb)
+   胶囊 pill 组合
+══════════════════════════════════════ */
+.mbs {
+  display:flex;
+  background:rgba(0,0,0,.04);
+  border-radius:100px;
+  padding:3px;
+  gap:2px;
+  backdrop-filter:blur(8px);
+}
+.mb {
+  padding:6px 18px;
+  border-radius:100px;
+  border:none;
+  background:transparent;
+  font-size:13px;
+  font-weight:500;
+  color:var(--t2);
+  cursor:pointer;
+  transition:all .15s;
+  white-space:nowrap;
+}
+.mb:hover { color:var(--t1) }
+.mb.on {
+  background:rgba(255,255,255,0.88);
+  color:var(--t1);
+  font-weight:600;
+  box-shadow:0 1px 4px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.9);
+}
+
 </style>
 </head>
 <body>
