@@ -855,6 +855,7 @@ const fN=n=>n==null?'-':Number(n).toLocaleString('zh-CN');
 const fC=v=>(!v&&v!==0)?'-':(v*100).toFixed(2)+'%';
 const cc=v=>!v?'':v>=0.03?'hi':v<0.015?'lo':'';
 const fD=d=>{const s=String(d);return s.slice(0,4)+'.'+s.slice(4,6)+'.'+s.slice(6,8)};
+const fDS=d=>{const s=String(d);return Number(s.slice(4,6))+'.'+Number(s.slice(6,8))}; // 短格式：5.19（去年份、去前导零）
 const iW=d=>{const dt=new Date(String(d).replace(/(\d{4})(\d{2})(\d{2})/,'$1-$2-$3'));return dt.getDay()===0||dt.getDay()===6};
 const dch=id=>{if(CHS[id]){CHS[id].destroy();delete CHS[id]}};
 
@@ -1387,7 +1388,7 @@ function doImport(){
     rows.forEach(r=>{const d=String(r['日期']);if(!bd[d])bd[d]={date:d,is_weekend:iW(Number(d)),rows:[]};const rid=Number(r['资源id']);bd[d].rows.push({rid,name:NAMES[rid]||(r['资源名']||String(rid)),epv:Number(r['曝光PV'])||0,euv:Number(r['曝光UV'])||0,cpv:Number(r['点击PV'])||0,cuv:Number(r['点击UV'])||0,ctr:Number(r['曝光UV'])>0?Number(r['点击UV'])/Number(r['曝光UV']):0,is_popup:[3625,3626].includes(rid)})});
     const days=Object.keys(bd).sort().map(d=>{const dy=bd[d];const t={epv:0,euv:0,cpv:0,cuv:0};dy.rows.forEach(r=>{t.epv+=r.epv;t.euv+=r.euv;t.cpv+=r.cpv;t.cuv+=r.cuv});t.ctr=t.euv>0?t.cuv/t.euv:0;return{...dy,total:t}});
     if(WEEKS[tk]){const ex=new Set(WEEKS[tk].days.map(d=>d.date));days.forEach(d=>{if(!ex.has(d.date))WEEKS[tk].days.push(d)});WEEKS[tk].days.sort((a,b)=>a.date.localeCompare(b.date))}
-    else{const ds=days.map(d=>d.date).sort();WEEKS[tk]={label:`${tk}（${fD(ds[0])}~${fD(ds[ds.length-1])}）`,days}}
+    else{const ds=days.map(d=>d.date).sort();WEEKS[tk]={label:`${tk}（${fDS(ds[0])}~${fDS(ds[ds.length-1])}）`,days}}
   });
   $('up-result').innerHTML='<div style="color:var(--green);font-weight:600;margin-top:10px">✅ 导入成功！</div>';
   renWkBtns();renCpBtns();renWkMg();
