@@ -760,7 +760,7 @@ tr.popup-row:hover { background:rgba(255,159,10,.10) }
   </div>
 
   <div class="card" id="wm-card" style="display:none">
-    <div class="chd"><h2>周次管理</h2><span class="bdg">当前数据</span></div>
+    <div class="chd"><h2>周次管理</h2><span class="bdg">当前数据</span><button onclick="clearStorage()" style="margin-left:auto;padding:4px 12px;border:1px solid var(--red-lt);background:var(--red-lt);color:var(--red-dk);border-radius:100px;font-size:11px;font-weight:600;cursor:pointer">🗑 清除本地数据</button></div>
     <div class="cbd" id="wm-body"></div>
   </div>
 </div>
@@ -839,7 +839,65 @@ document.querySelectorAll('.ntab').forEach(b=>b.addEventListener('click',()=>{
   if(t==='ai')runAI();
 }));
 
-function init(){WEEKS=JSON.parse(JSON.stringify(INIT.weeks))}
+function init(){
+  // 先用硬编码数据初始化
+  WEEKS=JSON.parse(JSON.stringify(INIT.weeks));
+  // 从 localStorage 读取上次保存的额外周数据（合并，不覆盖已有周）
+  try{
+    const saved=localStorage.getItem('bbb_weeks');
+    if(saved){
+      const sw=JSON.parse(saved);
+      Object.keys(sw).forEach(k=>{
+        if(!WEEKS[k]) WEEKS[k]=sw[k]; // 只追加，不覆盖内置周次
+      });
+    }
+  }catch(e){}
+  // 从 localStorage 读取上传过的整体资源信息覆盖
+  try{
+    const savedOv=localStorage.getItem('bbb_overall');
+    if(savedOv){
+      const ov=JSON.parse(savedOv);
+      ov.forEach(saved=>{
+        const idx=INIT.overall.findIndex(r=>r.rid===saved.rid);
+        if(idx>=0){
+          // 只更新非数值字段（name/platform/is_weekend/start/status）
+          // 数值字段保持内置数据不变
+          if(saved.name)   INIT.overall[idx].name=saved.name;
+          if(saved.platform) INIT.overall[idx].platform=saved.platform;
+          if(saved.is_weekend!==undefined) INIT.overall[idx].is_weekend=saved.is_weekend;
+          if(saved.start)  INIT.overall[idx].start=saved.start;
+          if(saved.status) INIT.overall[idx].status=saved.status;
+        }
+      });
+    }
+  }catch(e){}
+}
+
+// 保存 WEEKS 到 localStorage（只保存非内置周次）
+function saveWks(){
+  try{
+    const toSave={};
+    const builtIn=Object.keys(INIT.weeks);
+    Object.keys(WEEKS).forEach(k=>{if(!builtIn.includes(k))toSave[k]=WEEKS[k]});
+    localStorage.setItem('bbb_weeks',JSON.stringify(toSave));
+  }catch(e){}
+}
+
+// 保存 overall 资源信息到 localStorage
+function saveOverall(){
+  try{
+    const slim=INIT.overall.map(r=>({rid:r.rid,name:r.name,platform:r.platform,
+      is_weekend:r.is_weekend,start:r.start,status:r.status}));
+    localStorage.setItem('bbb_overall',JSON.stringify(slim));
+  }catch(e){}
+}
+
+// 清除所有本地存储（周次管理里的重置按钮用）
+function clearStorage(){
+  localStorage.removeItem('bbb_weeks');
+  localStorage.removeItem('bbb_overall');
+  location.reload();
+}
 
 function sumWk(wk,sp=true){let e=0,u=0,p=0,c=0;wk.days.forEach(d=>d.rows.forEach(r=>{if(sp&&POPUP.has(r.rid))return;e+=r.epv;u+=r.euv;p+=r.cpv;c+=r.cuv;}));return{epv:e,euv:u,cpv:p,cuv:c,ctr:u>0?c/u:0}}
 function sumR(wk,sp=true){const m={};wk.days.forEach(d=>d.rows.forEach(r=>{if(sp&&POPUP.has(r.rid))return;if(!m[r.rid])m[r.rid]={rid:r.rid,name:r.name,epv:0,euv:0,cpv:0,cuv:0};m[r.rid].epv+=r.epv;m[r.rid].euv+=r.euv;m[r.rid].cpv+=r.cpv;m[r.rid].cuv+=r.cuv;}));return Object.values(m).map(r=>({...r,ctr:r.euv>0?r.cuv/r.euv:0})).sort((a,b)=>ORD.indexOf(a.rid)-ORD.indexOf(b.rid))}
@@ -941,6 +999,7 @@ function procOverall(f){
       // 刷新整体数据页 + 整体概览
       renAl();
       renOv();
+      saveOverall();  // 持久化到 localStorage
       const extra=msgs.length?`<br><span style="font-size:11px;color:var(--t3)">${msgs.join('、')}</span>`:'';
       $('up-overall-result').innerHTML=`<div class="alert i" style="margin-top:12px"><div class="ai">✅</div><div class="at">成功更新 <b>${updated}</b> 条资源信息，整体数据页已同步刷新。${extra}</div></div>`;
     }catch(err){
@@ -1133,7 +1192,9 @@ function doImport(){
     else{const ds=days.map(d=>d.date).sort();WEEKS[tk]={label:`${tk}（${fD(ds[0])}~${fD(ds[ds.length-1])}）`,days}}
   });
   $('up-result').innerHTML='<div style="color:var(--green);font-weight:600;margin-top:10px">✅ 导入成功！</div>';
-  renWkBtns();renCpBtns();renWkMg();renOv();
+  renWkBtns();renCpBtns();renWkMg()
+      saveWks();
+      renOv();
   alert('导入成功！可切换到「分周明细」或「周对比」查看新数据。');
 }
 
@@ -1288,6 +1349,19 @@ function runAI(){
 // ── Init ──
 document.addEventListener('DOMContentLoaded',()=>{
   init();
+  // 显示本地存储状态
+  try{
+    const sw=localStorage.getItem('bbb_weeks');
+    const ov=localStorage.getItem('bbb_overall');
+    const extraWks=sw?Object.keys(JSON.parse(sw)).length:0;
+    if(extraWks>0||ov){
+      const tip=document.createElement('div');
+      tip.style.cssText='position:fixed;bottom:20px;right:20px;background:rgba(0,113,227,.9);color:#fff;padding:8px 16px;border-radius:100px;font-size:12px;z-index:9999;box-shadow:0 2px 12px rgba(0,113,227,.3)';
+      tip.textContent='✅ 已恢复本地数据'+(extraWks>0?'（'+extraWks+'个额外周次）':'');
+      document.body.appendChild(tip);
+      setTimeout(()=>tip.remove(),3000);
+    }
+  }catch(e){}
   curWk=Object.keys(WEEKS)[0]||null;
   cpSel=Object.keys(WEEKS).slice(0,2);
   renOv();
