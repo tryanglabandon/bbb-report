@@ -1210,7 +1210,7 @@ function renOv(){
   const wd=bs.filter(r=>!r.is_weekend),we=bs.filter(r=>r.is_weekend);
   const tot=r=>{let e=0,u=0,p=0,c=0;r.forEach(x=>{e+=x.epv;u+=x.euv;p+=x.cpv;c+=x.cuv;});return{epv:e,euv:u,cpv:p,cuv:c,ctr:u>0?c/u:0}};
   const T=tot(bs),W=tot(wd),E=tot(we);
-  const _co=localStorage.getItem('bbb_cutoff')||'5.19';
+  const _co=localStorage.getItem('bbb_cutoff')||INIT.cutoff||'5.19';
   const _coD=_co.replace(/^20\d\d\./,'');
   $('ov-kpi').innerHTML=`<div class="kpi-g">
     <div class="kpi"><div class="kl">📺 总曝光 PV（4.30~${_coD} 累计）</div><div class="kv num">${fN(T.epv)}</div><div class="kr"><div class="kri"><div class="v">${fN(W.epv)}</div><div class="l">💼 工作日</div></div><div class="kri"><div class="v">${fN(E.epv)}</div><div class="l">🌙 周末</div></div></div></div>
@@ -1418,7 +1418,7 @@ function renAl(){
     <div class="rct"><div><div class="rn">${r.name}</div><div class="ri">ID: ${r.rid} · ${r.platform!=='-'?r.platform:'弹窗'} · ${String(r.start).slice(0,10)} 起投</div></div>
     <div style="text-align:right"><span class="tg ${r.is_weekend?'wk':'wd'}">${r.is_weekend?'周末资源':'工作日资源'}</span><br><span style="font-size:11px;color:#94a3b8;margin-top:3px;display:block"><span class="dot"></span>${r.status}</span></div></div>
     <div class="rst"><div class="rs2"><div class="v num">${fN(r.epv)}</div><div class="l">曝光PV（累计）</div></div><div class="rs2"><div class="v num">${fN(r.euv)}</div><div class="l">曝光UV（累计）</div></div><div class="rs2"><div class="v num">${fN(r.cpv)}</div><div class="l">点击PV（累计）</div></div><div class="rs2"><div class="v num">${fN(r.cuv)}</div><div class="l">点击UV（累计）</div></div></div>
-    <div class="rctr"><div class="rcl">累计 CTR（4.30~${localStorage.getItem('bbb_cutoff')||'5.19'}）</div><div class="rcv">${r.ctr?fC(r.ctr):(r.is_popup?'数据逐周累积中':'-')}</div></div>
+    <div class="rctr"><div class="rcl">累计 CTR（4.30~${(localStorage.getItem('bbb_cutoff')||INIT.cutoff||'5.19').replace(/^20\d\d\./,'')}）</div><div class="rcv">${r.ctr?fC(r.ctr):(r.is_popup?'数据逐周累积中':'-')}</div></div>
     ${r.is_popup?'<div style="margin-top:8px;font-size:12px;color:var(--blue-dk)">ℹ️ 埋点已修复，新增数据正常计入</div>':''}
   </div>`;
 
