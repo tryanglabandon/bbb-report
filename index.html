@@ -406,7 +406,7 @@ tr.popup-row:hover { background:rgba(255,159,10,.10) }
   border-bottom:1px solid rgba(0,0,0,.06);
 }
 .sec.o { color:var(--orange-dk); margin-top:28px }
-.rg { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px }
+.rg { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:24px }
 .rc {
   background: rgba(255,255,255,0.62);
   backdrop-filter: blur(18px) saturate(150%);
@@ -1303,7 +1303,7 @@ function renAl(){
     </div>
   </div>`;
 
-  $('al-content').innerHTML=pieSection+'<div class="sec" style="margin-top:24px">📌 Banner 资源（4个）</div><div class="rg">'+bs.map(card).join('')+'</div><div class="sec o">⚠️ 弹窗资源（2个，数据跟进中）</div><div class="rg">'+ps.map(card).join('')+'</div>';
+  $('al-content').innerHTML=pieSection+'<div class="sec" style="margin-top:24px">📌 Banner 资源（4个）</div><div class="rg">'+bs.map(card).join('')+'</div><div class="sec o" style="color:var(--blue-dk)">ℹ️ 弹窗资源（2个，埋点已修复）</div><div class="rg">'+ps.map(card).join('')+'</div>';
 
   // ── 渲染饼图 ──
   const COLORS=['#0071e3','#34c759','#ff9f0a','#ff3b30'];
