@@ -607,6 +607,22 @@ tr.popup-row:hover { background:rgba(255,159,10,.10) }
   box-shadow:0 1px 4px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.9);
 }
 
+
+/* 整体资源上传区（小号） */
+.uz-sm {
+  border:2px dashed var(--bd);
+  border-radius:var(--r3);
+  padding:24px;
+  text-align:center;
+  cursor:pointer;
+  transition:border-color .15s, background .15s;
+  margin-bottom:12px;
+}
+.uz-sm:hover, .uz-sm.dv {
+  border-color:var(--blue);
+  background:rgba(0,113,227,.04);
+}
+
 </style>
 </head>
 <body>
@@ -720,6 +736,29 @@ tr.popup-row:hover { background:rgba(255,159,10,.10) }
       <div id="up-result"></div>
     </div>
   </div>
+  <!-- 整体资源数据上传 -->
+  <div class="card" id="overall-upload-card">
+    <div class="chd">
+      <h2>上传整体资源数据</h2>
+      <span class="bdg wn">可选</span>
+    </div>
+    <div class="cbd">
+      <div class="alert i" style="margin-bottom:16px">
+        <div class="ai">📋</div>
+        <div class="at"><strong>用途：</strong>补充资源基础信息（资源ID、资源名、平台、是否周末资源、投放开始日期、状态等），上传后整体数据页的资源卡片将自动更新。<br>
+        <strong>格式要求：</strong>Excel 包含列 <strong>资源id、资源名、平台、是否周末（0/1）、投放开始日期、状态</strong>（选填）。</div>
+      </div>
+      <div class="uz uz-sm" id="uz-overall" onclick="document.getElementById('fi-overall').click()"
+           ondragover="dov(event)" ondragleave="dlv(event)" ondrop="ddpOverall(event)">
+        <input type="file" id="fi-overall" accept=".xlsx,.xls" style="display:none" onchange="fselOverall(event)">
+        <div style="font-size:28px;margin-bottom:8px">📊</div>
+        <div style="font-size:13px;color:var(--t2);margin-bottom:4px">点击选择文件，或拖拽到此处</div>
+        <div style="font-size:11px;color:var(--t3)">更新资源基础信息 · 支持 .xlsx / .xls</div>
+      </div>
+      <div id="up-overall-result"></div>
+    </div>
+  </div>
+
   <div class="card" id="wm-card" style="display:none">
     <div class="chd"><h2>周次管理</h2><span class="bdg">当前数据</span></div>
     <div class="cbd" id="wm-body"></div>
@@ -841,6 +880,53 @@ function renOv(){
 
 // ── Weekly ──
 function renWkBtns(){$('wk-btns').innerHTML=Object.keys(WEEKS).map(k=>`<button class="wtb${k===curWk?' s':''}" onclick="selWk('${k}')">${WEEKS[k].label}</button>`).join('')}
+// ── 整体资源数据上传处理 ──
+function ddpOverall(e){e.preventDefault();$('uz-overall').classList.remove('dv');const f=e.dataTransfer.files[0];if(f)procOverall(f)}
+function fselOverall(e){const f=e.target.files[0];if(f)procOverall(f);e.target.value=''}
+function procOverall(f){
+  $('up-overall-result').innerHTML='<div style="padding:12px;color:var(--t2);font-size:13px">⏳ 解析中…</div>';
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      let updated=0;
+      rows.forEach(row=>{
+        const rid=parseInt(row['资源id']||row['资源ID']||row['rid']||0);
+        if(!rid) return;
+        const name=String(row['资源名']||row['资源名称']||'').trim();
+        const plat=String(row['平台']||'-').trim();
+        const isWe=parseInt(row['是否周末']||0)===1;
+        const start=String(row['投放开始日期']||row['开始日期']||'').replace(/\D/g,'').slice(0,8);
+        const status=String(row['状态']||'投放中').trim();
+        // 更新 INIT.overall 中匹配的资源
+        const idx=INIT.overall.findIndex(r=>r.rid===rid);
+        if(idx>=0){
+          if(name) INIT.overall[idx].name=name;
+          if(plat) INIT.overall[idx].platform=plat;
+          INIT.overall[idx].is_weekend=isWe;
+          if(start) INIT.overall[idx].start=start;
+          INIT.overall[idx].status=status;
+          updated++;
+        } else {
+          // 新增资源基础信息（无数据，仅记录）
+          INIT.overall.push({rid,name:name||('资源'+rid),platform:plat,is_weekend:isWe,
+            start:start||'20260430',status,is_popup:false,
+            epv:0,euv:0,cpv:0,cuv:0,ctr:null});
+          updated++;
+        }
+      });
+      // 刷新整体数据页
+      renAl();
+      $('up-overall-result').innerHTML=`<div class="alert i" style="margin-top:12px"><div class="ai">✅</div><div class="at">成功更新 <b>${updated}</b> 条资源基础信息，整体数据页已同步刷新。</div></div>`;
+    }catch(err){
+      $('up-overall-result').innerHTML=`<div class="alert w" style="margin-top:12px"><div class="ai">⚠️</div><div class="at">解析失败：${err.message}</div></div>`;
+    }
+  };
+  rd.readAsArrayBuffer(f);
+}
+
 function selWk(k){curWk=k;renWkBtns();renWkTbl(k)}
 function renWkTbl(k){
   const d=WEEKS[k];let h=`<div class="card"><div class="chd"><h2>${d.label} — 每日各资源位明细</h2><span class="bdg">${d.days.length}天</span></div><div class="cbd" style="padding:0"><div class="tw"><table><thead><tr><th>日期</th><th>类型</th><th>ID</th><th>资源名称</th><th>曝光PV</th><th>曝光UV</th><th>点击PV</th><th>点击UV</th><th>CTR</th></tr></thead><tbody>`;
@@ -1068,21 +1154,6 @@ function runAI(){
     const allCtr=allEuv>0?allCuv/allEuv:0;
     gIns.push({t:'if',i:'📊',h:'整体数据总览',
       b:`${wks.length}个周次合计：总曝光UV <b>${fN(allEuv)}</b>，总点击UV <b>${fN(allCuv)}</b>，综合 CTR <b>${fC(allCtr)}</b>。`});
-
-    // A2. 周次环比趋势
-    for(let i=1;i<sums.length;i++){
-      const pv=sums[i-1],cv=sums[i];
-      const ec=(cv.euv-pv.euv)/Math.max(pv.euv,1);
-      const cc2=cv.ctr-pv.ctr;
-      if(Math.abs(ec)>0.03)
-        gIns.push({t:ec>0?'gd':'wn',i:ec>0?'📈':'📉',
-          h:`${cv.label} 曝光UV环比${ec>0?'增长':'下降'}`,
-          b:`相比 ${pv.label}，曝光UV <b>${ec>0?'+':''}${(ec*100).toFixed(1)}%</b>（${fN(pv.euv)} → ${fN(cv.euv)}）。${ec<-0.1?'降幅较大，建议排查节假日或资源调整影响。':'整体趋势良好。'}`});
-      if(Math.abs(cc2)>0.002)
-        gIns.push({t:cc2>0?'gd':'bd',i:cc2>0?'✅':'⚠️',
-          h:`${cv.label} CTR${cc2>0?'提升':'下滑'}`,
-          b:`CTR 由 <b>${fC(pv.ctr)}</b> → <b>${fC(cv.ctr)}</b>。${cc2>0?'点击效率提升，素材/定向发挥了正向作用。':'建议检查素材新鲜度或人群匹配度。'}`});
-    }
 
     // A3. 整体各资源位表现排名
     const mg={};
