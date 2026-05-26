@@ -623,6 +623,78 @@ tr.popup-row:hover { background:rgba(255,159,10,.10) }
   background:rgba(0,113,227,.04);
 }
 
+/* ══ 可折叠企业投放区块 ══ */
+.ent-block {
+  background:rgba(255,255,255,0.60);
+  backdrop-filter:blur(18px) saturate(150%);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  border:1px solid var(--bd);
+  border-radius:var(--r3);
+  box-shadow:var(--sh1);
+  margin-bottom:20px;
+  overflow:hidden;
+}
+.ent-header {
+  display:flex; align-items:center; gap:10px;
+  padding:14px 20px; cursor:pointer;
+  user-select:none;
+  transition:background .15s;
+}
+.ent-header:hover { background:rgba(0,113,227,.04) }
+.ent-title {
+  font-size:14px; font-weight:700; color:var(--t1); flex:1;
+}
+.ent-count {
+  font-size:11px; font-weight:600; padding:2px 9px;
+  background:var(--blue-lt); color:var(--blue-dk);
+  border-radius:100px;
+}
+.ent-toggle {
+  width:20px; height:20px; display:flex; align-items:center; justify-content:center;
+  border-radius:50%; background:rgba(0,0,0,.05);
+  font-size:10px; color:var(--t2); transition:transform .25s ease;
+  flex-shrink:0;
+}
+.ent-toggle.open { transform:rotate(180deg) }
+.ent-body {
+  padding:0 20px 16px;
+  display:none;
+  animation:fadeIn .18s ease;
+}
+.ent-body.open { display:block }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+.ent-divider {
+  border:none; border-top:1px solid var(--bd2); margin:0 0 16px;
+}
+.ent-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+  gap:10px;
+}
+.ent-card {
+  background:rgba(255,255,255,0.70);
+  border:1px solid var(--bd);
+  border-radius:var(--r2);
+  padding:12px 14px;
+  display:flex; flex-direction:column; gap:4px;
+  transition:transform .15s, box-shadow .15s;
+}
+.ent-card:hover { transform:translateY(-2px); box-shadow:var(--sh2) }
+.ent-card-name {
+  font-size:15px; font-weight:700; color:var(--t1);
+}
+.ent-card-ids {
+  font-size:11px; color:var(--t2); line-height:1.5;
+}
+.ent-card-tag {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:10px; font-weight:600; padding:2px 7px;
+  border-radius:100px; margin-top:2px; width:fit-content;
+}
+.ent-card-tag.both { background:var(--blue-lt); color:var(--blue-dk) }
+.ent-card-tag.wkday { background:var(--orange-lt); color:var(--orange-dk) }
+.ent-card-tag.wkend { background:var(--purple-lt); color:var(--purple-dk) }
+
 </style>
 </head>
 <body>
@@ -665,6 +737,58 @@ tr.popup-row:hover { background:rgba(255,159,10,.10) }
     <div class="at">弹窗资源（BBB工作日外卖首页弹窗、3625）早期埋点异常已修复，<strong>新增数据将逐周累积</strong>；旧历史数据无法回滯，弹窗展示的历史各期数据仅供参考。</div>
   </div>
   <div id="ov-kpi"></div>
+
+  <!-- ── 正在投放企业（可折叠）── -->
+  <div class="ent-block">
+    <div class="ent-header" onclick="toggleEntBlock()">
+      <span style="font-size:16px">🏢</span>
+      <span class="ent-title">正在投放企业</span>
+      <span class="ent-count" id="ent-count-badge">6 家企业</span>
+      <span class="ent-toggle" id="ent-toggle-icon">▼</span>
+    </div>
+    <div class="ent-body" id="ent-body">
+      <hr class="ent-divider">
+      <div class="ent-grid">
+        <!-- 关爱通：工作日+周末 -->
+        <div class="ent-card">
+          <div class="ent-card-name">关爱通</div>
+          <div class="ent-card-ids">ent id：56809 · 201619 · 24344</div>
+          <span class="ent-card-tag both">💼🌙 工作日 + 周末</span>
+        </div>
+        <!-- 可伴：工作日+周末 -->
+        <div class="ent-card">
+          <div class="ent-card-name">可伴</div>
+          <div class="ent-card-ids">ent id：92308</div>
+          <span class="ent-card-tag both">💼🌙 工作日 + 周末</span>
+        </div>
+        <!-- 品诺：工作日+周末 -->
+        <div class="ent-card">
+          <div class="ent-card-name">品诺</div>
+          <div class="ent-card-ids">ent id：48797</div>
+          <span class="ent-card-tag both">💼🌙 工作日 + 周末</span>
+        </div>
+        <!-- 资和信：工作日+周末 -->
+        <div class="ent-card">
+          <div class="ent-card-name">资和信</div>
+          <div class="ent-card-ids">ent id：39980</div>
+          <span class="ent-card-tag both">💼🌙 工作日 + 周末</span>
+        </div>
+        <!-- 北纬：工作日+周末 -->
+        <div class="ent-card">
+          <div class="ent-card-name">北纬</div>
+          <div class="ent-card-ids">ent id：52536</div>
+          <span class="ent-card-tag both">💼🌙 工作日 + 周末</span>
+        </div>
+        <!-- 东福：仅周末 -->
+        <div class="ent-card">
+          <div class="ent-card-name">东福</div>
+          <div class="ent-card-ids">ent id：63481 · 33154 · 36150 · 50550</div>
+          <span class="ent-card-tag wkend">🌙 仅周末</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="chd"><h2>各资源位周次曝光UV对比</h2><span class="bdg">W1 vs W2</span></div>
     <div class="cbd"><div style="overflow-x:auto"><canvas id="ch-bar" height="240"></canvas></div></div>
@@ -958,6 +1082,14 @@ function clearStorage(){
 }
 
 // ── GitHub 一键同步 ──
+
+// 展开/折叠"正在投放企业"区块
+function toggleEntBlock(){
+  const body = document.getElementById('ent-body');
+  const icon = document.getElementById('ent-toggle-icon');
+  const open = body.classList.toggle('open');
+  icon.classList.toggle('open', open);
+}
 
 // 显示/隐藏配置面板，并自动填入已保存的值
 function toggleGhCfg(){
