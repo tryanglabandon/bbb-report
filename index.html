@@ -891,35 +891,58 @@ function procOverall(f){
       const wb=XLSX.read(e.target.result,{type:'array'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
-      let updated=0;
+      // 检测列名（用第一行）
+      const headers=Object.keys(rows[0]||{});
+      const hasIsWe=headers.some(h=>h.includes('周末')||h==='is_weekend');
+      let updated=0,msgs=[];
       rows.forEach(row=>{
-        const rid=parseInt(row['资源id']||row['资源ID']||row['rid']||0);
-        if(!rid) return;
-        const name=String(row['资源名']||row['资源名称']||'').trim();
-        const plat=String(row['平台']||'-').trim();
-        const isWe=parseInt(row['是否周末']||0)===1;
-        const start=String(row['投放开始日期']||row['开始日期']||'').replace(/\D/g,'').slice(0,8);
-        const status=String(row['状态']||'投放中').trim();
-        // 更新 INIT.overall 中匹配的资源
+        // 资源ID：兼容多种列名
+        const rid=parseInt(
+          row['资源id']||row['资源ID']||row['rid']||row['ID']||row['id']||0);
+        if(!rid){return;}
+        // 资源名（有值才更新）
+        const name=String(
+          row['资源名']||row['资源名称']||row['name']||'').trim();
+        // 平台（有值才更新）
+        const plat=String(
+          row['平台']||row['platform']||'').trim();
+        // 是否周末：只有 Excel 里明确有该列才覆盖，否则保持原值
+        const weRaw=row['是否周末']||row['周末']||row['is_weekend'];
+        const isWe=hasIsWe?(String(weRaw).trim()==='1'||String(weRaw).trim()==='true'||String(weRaw).trim()==='是'):null;
+        // 投放开始日期
+        const startRaw=String(
+          row['投放开始日期']||row['开始日期']||row['start']||'');
+        const start=startRaw.replace(/[^\d]/g,'').slice(0,8);
+        // 状态
+        const status=String(row['状态']||row['status']||'').trim();
         const idx=INIT.overall.findIndex(r=>r.rid===rid);
         if(idx>=0){
-          if(name) INIT.overall[idx].name=name;
-          if(plat) INIT.overall[idx].platform=plat;
-          INIT.overall[idx].is_weekend=isWe;
-          if(start) INIT.overall[idx].start=start;
-          INIT.overall[idx].status=status;
+          if(name)   INIT.overall[idx].name=name;
+          if(plat)   INIT.overall[idx].platform=plat;
+          if(isWe!==null) INIT.overall[idx].is_weekend=isWe;  // 只在有列时才改
+          if(start)  INIT.overall[idx].start=start;
+          if(status) INIT.overall[idx].status=status;
           updated++;
         } else {
-          // 新增资源基础信息（无数据，仅记录）
-          INIT.overall.push({rid,name:name||('资源'+rid),platform:plat,is_weekend:isWe,
-            start:start||'20260430',status,is_popup:false,
-            epv:0,euv:0,cpv:0,cuv:0,ctr:null});
+          INIT.overall.push({
+            rid,
+            name:name||('资源'+rid),
+            platform:plat||'-',
+            is_weekend:isWe===null?false:isWe,
+            start:start||'20260430',
+            status:status||'投放中',
+            is_popup:false,
+            epv:0,euv:0,cpv:0,cuv:0,ctr:null
+          });
+          msgs.push(`新增资源 ${rid}`);
           updated++;
         }
       });
-      // 刷新整体数据页
+      // 刷新整体数据页 + 整体概览
       renAl();
-      $('up-overall-result').innerHTML=`<div class="alert i" style="margin-top:12px"><div class="ai">✅</div><div class="at">成功更新 <b>${updated}</b> 条资源基础信息，整体数据页已同步刷新。</div></div>`;
+      renOv();
+      const extra=msgs.length?`<br><span style="font-size:11px;color:var(--t3)">${msgs.join('、')}</span>`:'';
+      $('up-overall-result').innerHTML=`<div class="alert i" style="margin-top:12px"><div class="ai">✅</div><div class="at">成功更新 <b>${updated}</b> 条资源信息，整体数据页已同步刷新。${extra}</div></div>`;
     }catch(err){
       $('up-overall-result').innerHTML=`<div class="alert w" style="margin-top:12px"><div class="ai">⚠️</div><div class="at">解析失败：${err.message}</div></div>`;
     }
