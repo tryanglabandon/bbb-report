@@ -1284,22 +1284,22 @@ function renAl(){
       <div class="al-pie-title">工作日 vs 周末<br><span class="al-pie-sub">曝光UV占比</span></div>
       <div class="al-pie-wrap"><canvas id="ch-pie-euv" width="180" height="180"></canvas></div>
       <div class="al-pie-legend">
-        <div class="al-leg-item"><span class="al-leg-dot" style="background:#0071e3"></span><span class="al-leg-txt">工作日 ${wdEuvPct}%（${fN(WD.euv)}）</span></div>
-        <div class="al-leg-item"><span class="al-leg-dot" style="background:#ff9f0a"></span><span class="al-leg-txt">周末 ${100-wdEuvPct}%（${fN(WE.euv)}）</span></div>
+<div class="al-leg-item"><span class="al-leg-dot" style="background:#4A90D9"></span><span class="al-leg-txt">工作日 ${wdEuvPct}%（${fN(WD.euv)}）</span></div>
+      <div class="al-leg-item"><span class="al-leg-dot" style="background:#A78BCA"></span><span class="al-leg-txt">周末 ${100-wdEuvPct}%（${fN(WE.euv)}）</span></div>
       </div>
     </div>
     <div class="al-pie-card">
       <div class="al-pie-title">工作日 vs 周末<br><span class="al-pie-sub">点击UV占比</span></div>
       <div class="al-pie-wrap"><canvas id="ch-pie-cuv" width="180" height="180"></canvas></div>
       <div class="al-pie-legend">
-        <div class="al-leg-item"><span class="al-leg-dot" style="background:#0071e3"></span><span class="al-leg-txt">工作日 ${wdCuvPct}%（${fN(WD.cuv)}）</span></div>
-        <div class="al-leg-item"><span class="al-leg-dot" style="background:#ff9f0a"></span><span class="al-leg-txt">周末 ${100-wdCuvPct}%（${fN(WE.cuv)}）</span></div>
+<div class="al-leg-item"><span class="al-leg-dot" style="background:#4A90D9"></span><span class="al-leg-txt">工作日 ${wdCuvPct}%（${fN(WD.cuv)}）</span></div>
+      <div class="al-leg-item"><span class="al-leg-dot" style="background:#A78BCA"></span><span class="al-leg-txt">周末 ${100-wdCuvPct}%（${fN(WE.cuv)}）</span></div>
       </div>
     </div>
     <div class="al-pie-card">
       <div class="al-pie-title">各资源位<br><span class="al-pie-sub">曝光UV占比</span></div>
       <div class="al-pie-wrap"><canvas id="ch-pie-res" width="180" height="180"></canvas></div>
-      <div class="al-pie-legend grid2">${bs.map((r,i)=>`<div class="al-leg-item"><span class="al-leg-dot" style="background:${['#0071e3','#34c759','#ff9f0a','#ff3b30'][i]}"></span><span class="al-leg-txt">${r.name.replace('BBB-','').replace('BBB','')} ${totalEuv?Math.round(r.euv/totalEuv*100):0}%</span></div>`).join('')}</div>
+      <div class="al-pie-legend grid2">${bs.map((r,i)=>`<div class="al-leg-item"><span class="al-leg-dot" style="background:${['#4A90D9','#6BBFA0','#A78BCA','#E8897A'][i]}"></span><span class="al-leg-txt">${r.name.replace('BBB-','').replace('BBB','')} ${totalEuv?Math.round(r.euv/totalEuv*100):0}%</span></div>`).join('')}</div>
     </div>
   </div>`;
 
@@ -1320,19 +1320,22 @@ function renAl(){
   // 销毁旧图
   ['ch-pie-euv','ch-pie-cuv','ch-pie-res'].forEach(id=>{if(CHS[id]){CHS[id].destroy();delete CHS[id]}});
 
+  // Apple 低饱和配色：柔蓝 / 浅紫藕 / 薄荷绿 / 玫瑰粉
+  const PIE2=['#4A90D9','#A78BCA'];          // 工作日 vs 周末
+  const PIE4=['#4A90D9','#6BBFA0','#A78BCA','#E8897A']; // 各资源位
   CHS['ch-pie-euv']=new Chart($('ch-pie-euv').getContext('2d'),{
     type:'doughnut',
-    data:{labels:['工作日','周末'],datasets:[{data:[WD.euv,WE.euv],backgroundColor:['#0071e3','#ff9f0a'],borderWidth:2,borderColor:'rgba(245,245,247,.85)',hoverOffset:6}]},
+    data:{labels:['工作日','周末'],datasets:[{data:[WD.euv,WE.euv],backgroundColor:PIE2,borderWidth:2.5,borderColor:'rgba(248,248,250,.9)',hoverOffset:6}]},
     options:pieOpts('58%',c=>fN(c.raw)+' UV ('+Math.round(c.raw/(WD.euv+WE.euv)*100)+'%)')
   });
   CHS['ch-pie-cuv']=new Chart($('ch-pie-cuv').getContext('2d'),{
     type:'doughnut',
-    data:{labels:['工作日','周末'],datasets:[{data:[WD.cuv,WE.cuv],backgroundColor:['#0071e3','#ff9f0a'],borderWidth:2,borderColor:'#fff',hoverOffset:6}]},
+    data:{labels:['工作日','周末'],datasets:[{data:[WD.cuv,WE.cuv],backgroundColor:PIE2,borderWidth:2.5,borderColor:'rgba(248,248,250,.9)',hoverOffset:6}]},
     options:pieOpts('58%',c=>fN(c.raw)+' UV ('+Math.round(c.raw/(WD.cuv+WE.cuv)*100)+'%)')
   });
   CHS['ch-pie-res']=new Chart($('ch-pie-res').getContext('2d'),{
     type:'doughnut',
-    data:{labels:bs.map(r=>r.name.replace('BBB-','').replace('BBB','')),datasets:[{data:bs.map(r=>r.euv),backgroundColor:['#0071e3','#34c759','#ff9f0a','#ff3b30'].slice(0,bs.length),borderWidth:2,borderColor:'#fff',hoverOffset:6}]},
+    data:{labels:bs.map(r=>r.name.replace('BBB-','').replace('BBB','')),datasets:[{data:bs.map(r=>r.euv),backgroundColor:PIE4.slice(0,bs.length),borderWidth:2.5,borderColor:'rgba(248,248,250,.9)',hoverOffset:6}]},
     options:pieOpts('58%',c=>fN(c.raw)+' UV ('+Math.round(c.raw/allEuv*100)+'%)')
   });
 }
