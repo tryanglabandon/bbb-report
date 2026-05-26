@@ -760,7 +760,12 @@ tr.popup-row:hover { background:rgba(255,159,10,.10) }
   </div>
 
   <div class="card" id="wm-card" style="display:none">
-    <div class="chd"><h2>周次管理</h2><span class="bdg">当前数据</span><button onclick="clearStorage()" style="margin-left:auto;padding:4px 12px;border:1px solid var(--red-lt);background:var(--red-lt);color:var(--red-dk);border-radius:100px;font-size:11px;font-weight:600;cursor:pointer">🗑 清除本地数据</button></div>
+    <div class="chd"><h2>周次管理</h2><span class="bdg">当前数据</span>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <button onclick="exportBaked()" style="padding:4px 14px;border:1px solid var(--blue-lt);background:var(--blue-lt);color:var(--blue-dk);border-radius:100px;font-size:11px;font-weight:600;cursor:pointer">📤 生成分享版本</button>
+        <button onclick="clearStorage()" style="padding:4px 12px;border:1px solid var(--red-lt);background:var(--red-lt);color:var(--red-dk);border-radius:100px;font-size:11px;font-weight:600;cursor:pointer">🗑 清除本地数据</button>
+      </div>
+    </div>
     <div class="cbd" id="wm-body"></div>
   </div>
 </div>
@@ -897,6 +902,48 @@ function clearStorage(){
   localStorage.removeItem('bbb_weeks');
   localStorage.removeItem('bbb_overall');
   location.reload();
+}
+
+// 生成"分享版本"：把当前运行时完整数据烧录进 HTML，下载后发给别人或推送 GitHub Pages
+function exportBaked(){
+  // 构建新的 INIT 对象（包含当前所有周次 + 最新 overall）
+  const newINIT = {
+    weeks: JSON.parse(JSON.stringify(WEEKS)),
+    overall: JSON.parse(JSON.stringify(INIT.overall))
+  };
+  const newINITStr = 'const INIT=' + JSON.stringify(newINIT) + ';';
+
+  // 读取当前页面的 HTML 源码
+  fetch(location.href)
+    .then(r => r.text())
+    .then(html => {
+      // 替换 const INIT=...;  这一行（内容可能很长，用正则精确匹配）
+      const replaced = html.replace(/const INIT=\{.*?\};(?=\s*\n)/, newINITStr);
+      const blob = new Blob([replaced], {type: 'text/html;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'BBB资源投放分析报告_分享版.html';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      // 提示
+      const tip = document.createElement('div');
+      tip.style.cssText = 'position:fixed;bottom:20px;right:20px;background:rgba(0,113,227,.92);color:#fff;padding:10px 20px;border-radius:100px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,113,227,.35)';
+      tip.textContent = '✅ 分享版本已下载，替换 GitHub Pages 的 index.html 即可';
+      document.body.appendChild(tip);
+      setTimeout(() => tip.remove(), 4000);
+    })
+    .catch(() => {
+      // fetch 失败时（本地文件协议）用 XMLSerializer 序列化当前 DOM（降级方案）
+      const raw = new XMLSerializer().serializeToString(document);
+      const html = '<!DOCTYPE html>\n' + raw;
+      const replaced = html.replace(/const INIT=\{[\s\S]*?\};/, newINITStr);
+      const blob = new Blob([replaced], {type: 'text/html;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'BBB资源投放分析报告_分享版.html';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
 }
 
 function sumWk(wk,sp=true){let e=0,u=0,p=0,c=0;wk.days.forEach(d=>d.rows.forEach(r=>{if(sp&&POPUP.has(r.rid))return;e+=r.epv;u+=r.euv;p+=r.cpv;c+=r.cuv;}));return{epv:e,euv:u,cpv:p,cuv:c,ctr:u>0?c/u:0}}
