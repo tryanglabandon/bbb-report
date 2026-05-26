@@ -637,7 +637,7 @@ tr.popup-row:hover { background:rgba(255,159,10,.10) }
       <span class="tag-pill">📅 数据周期：2026.4.30 — 2026.5.19</span>
       <span class="tag-pill">📍 Banner资源 4个 + 弹窗 2个（弹窗跟进中）</span>
       <span class="tag-pill">W1: 5.5~5.11 &nbsp;|&nbsp; W2: 5.12~5.18</span>
-      <span class="tag-pill">🕐 截止：2026.5.19</span>
+      <span class="tag-pill" id="tag-cutoff">🕐 截止：2026.5.19</span>
     </div>
   </div>
 </div>
@@ -707,10 +707,10 @@ tr.popup-row:hover { background:rgba(255,159,10,.10) }
 <!-- ══════════════ 整体数据 ══════════════ -->
 <div id="p-al" class="pane">
   <div class="shtl">4.30 起整体数据</div>
-  <div class="shsb">截止 5.19 各资源位累计表现</div>
+  <div class="shsb" id="al-cutoff-sub">截止 5.19 各资源位累计表现</div>
   <div class="alert i">
     <div class="ai">📌</div>
-    <div class="at">以下为 <strong>4.30 ~ 5.19 累计整体数据</strong>（来源：5.19整体资源数据.xlsx），弹窗数据疑似异常，仅供参考。</div>
+    <div class="at" id="al-cutoff-tip">以下为 <strong>4.30 ~ 5.19 累计整体数据</strong>（来源：5.19整体资源数据.xlsx），弹窗数据疑似异常，仅供参考。</div>
   </div>
   <div id="al-content"></div>
 </div>
@@ -839,7 +839,7 @@ tr.popup-row:hover { background:rgba(255,159,10,.10) }
 </div>
 
 </div><!-- /main -->
-<div class="footer">BBB 资源投放分析报告 · 数据截止 2026.5.19 · 仅供内部使用</div>
+<div class="footer" id="footer-cutoff">BBB 资源投放分析报告 · 数据截止 2026.5.19 · 仅供内部使用</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -876,11 +876,11 @@ function init(){
     if(saved){
       const sw=JSON.parse(saved);
       Object.keys(sw).forEach(k=>{
-        if(!WEEKS[k]) WEEKS[k]=sw[k]; // 只追加，不覆盖内置周次
+        if(!WEEKS[k]) WEEKS[k]=sw[k];
       });
     }
   }catch(e){}
-  // 从 localStorage 读取上传过的整体资源信息覆盖
+  // 从 localStorage 完整还原上传过的整体资源数据（包含所有数值字段）
   try{
     const savedOv=localStorage.getItem('bbb_overall');
     if(savedOv){
@@ -888,17 +888,33 @@ function init(){
       ov.forEach(saved=>{
         const idx=INIT.overall.findIndex(r=>r.rid===saved.rid);
         if(idx>=0){
-          // 只更新非数值字段（name/platform/is_weekend/start/status）
-          // 数值字段保持内置数据不变
-          if(saved.name)   INIT.overall[idx].name=saved.name;
-          if(saved.platform) INIT.overall[idx].platform=saved.platform;
-          if(saved.is_weekend!==undefined) INIT.overall[idx].is_weekend=saved.is_weekend;
-          if(saved.start)  INIT.overall[idx].start=saved.start;
-          if(saved.status) INIT.overall[idx].status=saved.status;
+          // 完整覆盖所有字段（上传的数据优先）
+          Object.assign(INIT.overall[idx], saved);
+        } else {
+          // 新资源直接追加
+          INIT.overall.push(saved);
         }
       });
     }
   }catch(e){}
+  // 还原截止日期并更新页面显示
+  try{
+    const cutoff=localStorage.getItem('bbb_cutoff');
+    if(cutoff) applyCutoff(cutoff);
+  }catch(e){}
+}
+
+// 统一更新页面所有"截止日期"显示
+function applyCutoff(dateStr){
+  // dateStr 格式如 "5.26" 或 "2026.5.26"
+  const d=dateStr.replace(/^20\d\d\./,''); // 去掉年份前缀，保留 "M.DD"
+  const full='2026.'+d;
+  const el1=$('tag-cutoff');       if(el1) el1.textContent='🕐 截止：'+full;
+  const el2=$('al-cutoff-sub');    if(el2) el2.textContent='截止 '+d+' 各资源位累计表现';
+  const el3=$('al-cutoff-tip');
+  if(el3) el3.innerHTML='以下为 <strong>4.30 ~ '+d+' 累计整体数据</strong>（来源：整体资源数据.xlsx），弹窗数据疑似异常，仅供参考。';
+  const el4=$('footer-cutoff');
+  if(el4) el4.textContent='BBB 资源投放分析报告 · 数据截止 '+full+' · 仅供内部使用';
 }
 
 // 保存 WEEKS 到 localStorage（只保存非内置周次）
@@ -911,12 +927,10 @@ function saveWks(){
   }catch(e){}
 }
 
-// 保存 overall 资源信息到 localStorage
+// 保存完整 overall 数据到 localStorage（所有字段，包含数值）
 function saveOverall(){
   try{
-    const slim=INIT.overall.map(r=>({rid:r.rid,name:r.name,platform:r.platform,
-      is_weekend:r.is_weekend,start:r.start,status:r.status}));
-    localStorage.setItem('bbb_overall',JSON.stringify(slim));
+    localStorage.setItem('bbb_overall',JSON.stringify(INIT.overall));
   }catch(e){}
 }
 
@@ -1076,59 +1090,99 @@ function procOverall(f){
       const wb=XLSX.read(e.target.result,{type:'array'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
-      // 检测列名（用第一行）
+      if(!rows.length) throw new Error('表格为空');
+
+      // 检测列名
       const headers=Object.keys(rows[0]||{});
       const hasIsWe=headers.some(h=>h.includes('周末')||h==='is_weekend');
-      let updated=0,msgs=[];
+
+      // 从文件名自动提取截止日期（如"截止5.26bbb..."→"5.26"）
+      let cutoffStr='';
+      const fnMatch=f.name.match(/截止(\d+[\.\-]\d+)/);
+      if(fnMatch) cutoffStr=fnMatch[1].replace('-','.');
+      else {
+        // 备用：用今天日期
+        const now=new Date();
+        cutoffStr=(now.getMonth()+1)+'.'+(now.getDate());
+      }
+
+      let updated=0, newAdded=0;
       rows.forEach(row=>{
-        // 资源ID：兼容多种列名
-        const rid=parseInt(
-          row['资源id']||row['资源ID']||row['rid']||row['ID']||row['id']||0);
-        if(!rid){return;}
-        // 资源名（有值才更新）
-        const name=String(
-          row['资源名']||row['资源名称']||row['name']||'').trim();
-        // 平台（有值才更新）
-        const plat=String(
-          row['平台']||row['platform']||'').trim();
-        // 是否周末：只有 Excel 里明确有该列才覆盖，否则保持原值
+        // 资源 ID
+        const rid=parseInt(row['资源id']||row['资源ID']||row['rid']||row['ID']||row['id']||0);
+        if(!rid) return;
+
+        // 文本字段
+        const name   = String(row['资源名']||row['资源名称']||row['name']||'').trim();
+        const plat   = String(row['平台']||row['platform']||'').trim();
+        const page   = String(row['页面']||row['page']||'').trim();
+        const slot   = String(row['广告位']||row['slot']||'').trim();
+        const status = String(row['资源状态']||row['状态']||row['status']||'').trim();
+        const startRaw=String(row['投放开始时间']||row['投放开始日期']||row['开始日期']||row['start']||'');
+        const start  = startRaw.trim();
+        const endRaw =String(row['投放结束时间']||row['投放结束日期']||row['结束日期']||row['end']||'');
+        const end    = endRaw.trim();
+
+        // 是否周末
         const weRaw=row['是否周末']||row['周末']||row['is_weekend'];
         const isWe=hasIsWe?(String(weRaw).trim()==='1'||String(weRaw).trim()==='true'||String(weRaw).trim()==='是'):null;
-        // 投放开始日期
-        const startRaw=String(
-          row['投放开始日期']||row['开始日期']||row['start']||'');
-        const start=startRaw.replace(/[^\d]/g,'').slice(0,8);
-        // 状态
-        const status=String(row['状态']||row['status']||'').trim();
+
+        // 是否弹窗
+        const isPopup=POPUP.has(rid);
+
+        // 数值字段（兼容多种列名，支持带括号的累计列名）
+        const gN=(keys)=>{for(const k of keys){const v=row[k];if(v!==''&&v!==null&&v!==undefined){const n=parseFloat(String(v).replace(/,/g,''));if(!isNaN(n))return n;}}return null;};
+        const epv=gN(['曝光PV（累计）','曝光PV(累计)','曝光PV','epv','EPV','曝光pv']);
+        const euv=gN(['曝光UV（累计）','曝光UV(累计)','曝光UV','euv','EUV','曝光uv']);
+        const cpv=gN(['点击PV（累计）','点击PV(累计)','点击PV','cpv','CPV','点击pv']);
+        const cuv=gN(['点击UV（累计）','点击UV(累计)','点击UV','cuv','CUV','点击uv']);
+        const ctrRaw=gN(['曝光到点击转化率（累计）','曝光到点击转化率(累计)','曝光到点击转化率','CTR','ctr','转化率']);
+        // ctr 可能是百分比形式(如0.03)或文本(3.00%)
+        let ctr=ctrRaw;
+        if(ctr!==null && ctr>1) ctr=ctr/100; // 如果是百分比数字（如3.00），转换
+
         const idx=INIT.overall.findIndex(r=>r.rid===rid);
         if(idx>=0){
-          if(name)   INIT.overall[idx].name=name;
-          if(plat)   INIT.overall[idx].platform=plat;
-          if(isWe!==null) INIT.overall[idx].is_weekend=isWe;  // 只在有列时才改
-          if(start)  INIT.overall[idx].start=start;
-          if(status) INIT.overall[idx].status=status;
+          const rec=INIT.overall[idx];
+          if(name)   rec.name=name;
+          if(plat)   rec.platform=plat;
+          if(page)   rec.page=page;
+          if(slot)   rec.slot=slot;
+          if(status) rec.status=status;
+          if(start)  rec.start=start;
+          if(end)    rec.end=end;
+          if(isWe!==null) rec.is_weekend=isWe;
+          if(epv!==null)  rec.epv=epv;
+          if(euv!==null)  rec.euv=euv;
+          if(cpv!==null)  rec.cpv=cpv;
+          if(cuv!==null)  rec.cuv=cuv;
+          if(ctr!==null)  rec.ctr=ctr;
           updated++;
         } else {
           INIT.overall.push({
-            rid,
-            name:name||('资源'+rid),
-            platform:plat||'-',
-            is_weekend:isWe===null?false:isWe,
-            start:start||'20260430',
-            status:status||'投放中',
-            is_popup:false,
-            epv:0,euv:0,cpv:0,cuv:0,ctr:null
+            rid, name:name||('资源'+rid), platform:plat||'-',
+            page:page||'-', slot:slot||'-', status:status||'投放中',
+            start:start||'2026-04-30', end:end||'2026-12-31',
+            is_popup:isPopup, is_weekend:isWe===null?false:isWe,
+            epv:epv||0, euv:euv||0, cpv:cpv||0, cuv:cuv||0,
+            ctr:ctr!==null?ctr:0
           });
-          msgs.push(`新增资源 ${rid}`);
+          newAdded++;
           updated++;
         }
       });
+
+      // 保存截止日期到 localStorage 并更新页面显示
+      localStorage.setItem('bbb_cutoff', cutoffStr);
+      applyCutoff(cutoffStr);
+
       // 刷新整体数据页 + 整体概览
       renAl();
       renOv();
-      saveOverall();  // 持久化到 localStorage
-      const extra=msgs.length?`<br><span style="font-size:11px;color:var(--t3)">${msgs.join('、')}</span>`:'';
-      $('up-overall-result').innerHTML=`<div class="alert i" style="margin-top:12px"><div class="ai">✅</div><div class="at">成功更新 <b>${updated}</b> 条资源信息，整体数据页已同步刷新。${extra}</div></div>`;
+      saveOverall();
+
+      const extraMsg=newAdded>0?`，新增 <b>${newAdded}</b> 条`:'';
+      $('up-overall-result').innerHTML=`<div class="alert i" style="margin-top:12px"><div class="ai">✅</div><div class="at">成功更新 <b>${updated}</b> 条资源数据${extraMsg}，截止日期已更新为 <b>${cutoffStr}</b>，整体概览同步刷新。</div></div>`;
     }catch(err){
       $('up-overall-result').innerHTML=`<div class="alert w" style="margin-top:12px"><div class="ai">⚠️</div><div class="at">解析失败：${err.message}</div></div>`;
     }
