@@ -1023,10 +1023,15 @@ function init(){
     }
   }catch(e){}
   // 还原截止日期并更新页面显示
-  try{
-    const cutoff=localStorage.getItem('bbb_cutoff');
-    if(cutoff) applyCutoff(cutoff);
-  }catch(e){}
+// 优先级：localStorage（本机最新操作）> INIT.cutoff（GitHub Pages 烧录值）> 默认 5.19
+try{
+const lsCutoff = localStorage.getItem('bbb_cutoff');
+const initCutoff = INIT.cutoff;
+const cutoff = lsCutoff || initCutoff || '5.19';
+applyCutoff(cutoff);
+// 如果是从烧录值恢复的，也写入 localStorage 以保持一致
+if(!lsCutoff && initCutoff) localStorage.setItem('bbb_cutoff', initCutoff);
+}catch(e){}
 }
 
 // 统一更新页面所有"截止日期"显示（上传整体数据时自动调用）
@@ -1159,9 +1164,16 @@ async function syncToGitHub(){
     const existingHtml = decodeURIComponent(escape(atob(meta.content.replace(/\n/g,''))));
 
     // 3. 把当前内存中的完整数据注入（替换 INIT 那一行）
-    const newINIT = { weeks: JSON.parse(JSON.stringify(WEEKS)), overall: JSON.parse(JSON.stringify(INIT.overall)) };
+    // 同时烧录截止日期 cutoff，这样换浏览器也能读到正确日期
+    const currentCutoff = localStorage.getItem('bbb_cutoff') || INIT.cutoff || '5.19';
+    const newINIT = {
+      weeks:   JSON.parse(JSON.stringify(WEEKS)),
+      overall: JSON.parse(JSON.stringify(INIT.overall)),
+      cutoff:  currentCutoff
+    };
     const newINITStr = 'const INIT=' + JSON.stringify(newINIT) + ';';
-    const newHtml = existingHtml.replace(/const INIT=\{[\s\S]*?\};(?=\s*\n)/, newINITStr);
+    // 用贪婪匹配 + 行首锚定，确保能完整匹配整个 const INIT=...;（不会被中间的 }; 截断）
+    const newHtml = existingHtml.replace(/^const INIT=\{[\s\S]+\};$/m, newINITStr);
 
     // 4. Base64 编码后 PUT 回去
     const encoded = btoa(unescape(encodeURIComponent(newHtml)));
