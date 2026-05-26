@@ -1499,6 +1499,9 @@ function nextWkKey(){const ns=Object.keys(WEEKS).filter(k=>/^W\d+$/.test(k)).map
 
 function pf(file){
   $('up-result').innerHTML=`<div style="margin-top:10px;color:var(--blue)">⏳ 正在解析 ${file.name}...</div>`;
+  // 从文件名提取日期范围（如 "5.19-5.25bbb..." → endDate="5.25"）
+  const fnRange=file.name.match(/(\d+[\.\/\-]\d+)[\-~](\d+[\.\/\-]\d+)/);
+  window._pbwEndDate = fnRange ? fnRange[2].replace(/[\/\-]/g,'.') : null;
   const rdr=new FileReader();
   rdr.onload=e=>{
     try{
@@ -1535,7 +1538,12 @@ function doImport(){
     rows.forEach(r=>{const d=String(r['日期']);if(!bd[d])bd[d]={date:d,is_weekend:iW(Number(d)),rows:[]};const rid=Number(r['资源id']);bd[d].rows.push({rid,name:NAMES[rid]||(r['资源名']||String(rid)),epv:Number(r['曝光PV'])||0,euv:Number(r['曝光UV'])||0,cpv:Number(r['点击PV'])||0,cuv:Number(r['点击UV'])||0,ctr:Number(r['曝光UV'])>0?Number(r['点击UV'])/Number(r['曝光UV']):0,is_popup:[3625,3626].includes(rid)})});
     const days=Object.keys(bd).sort().map(d=>{const dy=bd[d];const t={epv:0,euv:0,cpv:0,cuv:0};dy.rows.forEach(r=>{t.epv+=r.epv;t.euv+=r.euv;t.cpv+=r.cpv;t.cuv+=r.cuv});t.ctr=t.euv>0?t.cuv/t.euv:0;return{...dy,total:t}});
     if(WEEKS[tk]){const ex=new Set(WEEKS[tk].days.map(d=>d.date));days.forEach(d=>{if(!ex.has(d.date))WEEKS[tk].days.push(d)});WEEKS[tk].days.sort((a,b)=>a.date.localeCompare(b.date))}
-    else{const ds=days.map(d=>d.date).sort();WEEKS[tk]={label:`${tk}（${fDS(ds[0])}~${fDS(ds[ds.length-1])}）`,days}}
+    else{
+      const ds=days.map(d=>d.date).sort();
+      // 优先用文件名里的结束日期（如5.25），文件名没有则用数据里最大日期
+      const endLabel = window._pbwEndDate || fDS(ds[ds.length-1]);
+      WEEKS[tk]={label:`${tk}（${fDS(ds[0])}~${endLabel}）`,days};
+    }
   });
   $('up-result').innerHTML='<div style="color:var(--green);font-weight:600;margin-top:10px">✅ 导入成功！</div>';
   renWkBtns();renCpBtns();renWkMg();
